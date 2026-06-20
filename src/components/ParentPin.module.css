@@ -1,0 +1,102 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(4px);
+}
+
+.card {
+  background: linear-gradient(160deg, #4c1d95, #1e3a8a);
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 28px;
+  padding: 32px 28px;
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.lock {
+  font-size: 2.5rem;
+}
+
+.title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: white;
+}
+
+.sub {
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.65);
+}
+
+.dots {
+  display: flex;
+  gap: 14px;
+  margin: 4px 0;
+}
+
+.dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  border: 2px solid rgba(255,255,255,0.5);
+  transition: background 0.15s;
+}
+
+.filled {
+  background: #a855f7;
+  border-color: #a855f7;
+}
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.key {
+  background: rgba(255,255,255,0.12);
+  border: 2px solid rgba(255,255,255,0.15);
+  border-radius: 14px;
+  padding: 16px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: white;
+  font-family: inherit;
+  transition: background 0.1s, transform 0.1s;
+}
+
+.key:active {
+  background: rgba(255,255,255,0.25);
+  transform: scale(0.93);
+}
+
+.key.empty {
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+}
+
+.shake {
+  animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-10px); }
+  40% { transform: translateX(10px); }
+  60% { transform: translateX(-8px); }
+  80% { transform: translateX(8px); }
+}
