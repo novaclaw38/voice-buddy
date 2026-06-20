@@ -168,10 +168,30 @@ export default function ParentPage() {
               </div>
             </div>
 
-            <h2 className={styles.sectionTitle} style={{ marginTop: 24 }}>OpenRouter API Key</h2>
-            <p className={styles.hint} style={{ marginBottom: 8 }}>
-              Get a free key at <strong>openrouter.ai</strong>. It stays on your device only.
-            </p>
+            <h2 className={styles.sectionTitle} style={{ marginTop: 24 }}>AI Provider</h2>
+
+            <div className={styles.field}>
+              <label className={styles.label}>Provider</label>
+              <div className={styles.providerBtns}>
+                <button
+                  className={`${styles.providerBtn} ${(settings.provider || 'nvidia') === 'nvidia' ? styles.activeProvider : ''}`}
+                  onClick={() => updateSetting('provider', 'nvidia')}
+                >
+                  🟢 NVIDIA (Free)
+                </button>
+                <button
+                  className={`${styles.providerBtn} ${settings.provider === 'openrouter' ? styles.activeProvider : ''}`}
+                  onClick={() => updateSetting('provider', 'openrouter')}
+                >
+                  🔵 OpenRouter
+                </button>
+              </div>
+              {(settings.provider || 'nvidia') === 'nvidia' ? (
+                <p className={styles.hint}>Get a free key at <strong>build.nvidia.com</strong> → sign up → API Key. 1000 free credits, no card needed.</p>
+              ) : (
+                <p className={styles.hint}>Get a free key at <strong>openrouter.ai</strong>. Free models may have availability issues.</p>
+              )}
+            </div>
 
             <div className={styles.field}>
               <label className={styles.label}>API Key</label>
@@ -180,7 +200,7 @@ export default function ParentPage() {
                 type="password"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                placeholder="sk-or-..."
+                placeholder={(settings.provider || 'nvidia') === 'nvidia' ? 'nvapi-...' : 'sk-or-...'}
               />
             </div>
 

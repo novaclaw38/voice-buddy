@@ -1,25 +1,40 @@
-import { getApiKey } from '../utils/storage.js'
+import { getApiKey, getSettings } from '../utils/storage.js'
 
-const BASE_URL = 'https://openrouter.ai/api/v1/chat/completions'
-
-const FREE_MODELS = [
-  'meta-llama/llama-3.2-3b-instruct:free',
-  'qwen/qwen-2.5-7b-instruct:free',
-  'mistralai/mistral-7b-instruct:free',
-]
-
-async function tryModel(messages, model, options) {
-  const key = getApiKey()
-  if (!key) throw new Error('NO_API_KEY')
-
-  const response = await fetch(BASE_URL, {
-    method: 'POST',
-    headers: {
+const PROVIDERS = {
+  nvidia: {
+    url: 'https://integrate.api.nvidia.com/v1/chat/completions',
+    models: [
+      'meta/llama-3.2-3b-instruct',
+      'meta/llama-3.1-8b-instruct',
+      'mistralai/mistral-7b-instruct-v0.3',
+    ],
+    headers: (key) => ({
+      Authorization: `Bearer ${key}`,
+      'Content-Type': 'application/json',
+    }),
+  },
+  openrouter: {
+    url: 'https://openrouter.ai/api/v1/chat/completions',
+    models: [
+      'meta-llama/llama-3.2-3b-instruct:free',
+      'qwen/qwen-2.5-7b-instruct:free',
+      'mistralai/mistral-7b-instruct:free',
+    ],
+    headers: (key) => ({
       Authorization: `Bearer ${key}`,
       'Content-Type': 'application/json',
       'HTTP-Referer': window.location.origin,
       'X-Title': 'Voice Buddy',
-    },
+    }),
+  },
+}
+
+async function tryModel(messages, model, provider, key, options) {
+  const { url, headers } = PROVIDERS[provider]
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: headers(key),
     body: JSON.stringify({
       model,
       messages,
@@ -43,15 +58,18 @@ export async function chatCompletion(messages, options = {}) {
   const key = getApiKey()
   if (!key) throw new Error('NO_API_KEY')
 
-  // Walk through all free models; skip to the next on rate limit
-  for (let i = 0; i < FREE_MODELS.length; i++) {
+  const settings = getSettings()
+  const provider = settings.provider || 'nvidia'
+  const models = PROVIDERS[provider].models
+
+  for (let i = 0; i < models.length; i++) {
     try {
-      return await tryModel(messages, FREE_MODELS[i], options)
+      return await tryModel(messages, models[i], provider, key, options)
     } catch (err) {
-      if (err.message === 'RATE_LIMIT' && i < FREE_MODELS.length - 1) {
-        continue // try next model
+      if ((err.message === 'RATE_LIMIT' || err.message.includes('no endpoints') || err.message.includes('not available')) && i < models.length - 1) {
+        continue
       }
-      throw err // last model or non-rate-limit error
+      throw err
     }
   }
 }

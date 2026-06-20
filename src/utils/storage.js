@@ -7,6 +7,7 @@ const KEYS = {
 const DEFAULTS = {
   childName: 'Dub',
   parentPin: '1234',
+  provider: 'nvidia',
   voiceName: '',
   speechRate: 0.9,
   speechPitch: 1.1,

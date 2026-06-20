@@ -197,6 +197,31 @@
 
 .btnTest:disabled { opacity: 0.5; }
 
+.providerBtns {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.providerBtn {
+  flex: 1;
+  padding: 12px 10px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.7);
+  font-weight: 700;
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.activeProvider {
+  background: rgba(124,58,237,0.35);
+  border-color: #7c3aed;
+  color: white;
+}
+
 .testError {
   margin-top: 8px;
   font-size: 0.82rem;
