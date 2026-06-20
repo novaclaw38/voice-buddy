@@ -174,10 +174,10 @@ export default function ParentPage() {
               <label className={styles.label}>Provider</label>
               <div className={styles.providerBtns}>
                 <button
-                  className={`${styles.providerBtn} ${(settings.provider || 'nvidia') === 'nvidia' ? styles.activeProvider : ''}`}
-                  onClick={() => updateSetting('provider', 'nvidia')}
+                  className={`${styles.providerBtn} ${(settings.provider || 'groq') === 'groq' ? styles.activeProvider : ''}`}
+                  onClick={() => updateSetting('provider', 'groq')}
                 >
-                  🟢 NVIDIA (Free)
+                  🟢 Groq (Free)
                 </button>
                 <button
                   className={`${styles.providerBtn} ${settings.provider === 'openrouter' ? styles.activeProvider : ''}`}
@@ -186,8 +186,8 @@ export default function ParentPage() {
                   🔵 OpenRouter
                 </button>
               </div>
-              {(settings.provider || 'nvidia') === 'nvidia' ? (
-                <p className={styles.hint}>Get a free key at <strong>build.nvidia.com</strong> → sign up → API Key. 1000 free credits, no card needed.</p>
+              {(settings.provider || 'groq') === 'groq' ? (
+                <p className={styles.hint}>Get a free key at <strong>console.groq.com</strong> → sign up → API Keys → Create key. Free, no card needed.</p>
               ) : (
                 <p className={styles.hint}>Get a free key at <strong>openrouter.ai</strong>. Free models may have availability issues.</p>
               )}
@@ -200,7 +200,7 @@ export default function ParentPage() {
                 type="password"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                placeholder={(settings.provider || 'nvidia') === 'nvidia' ? 'nvapi-...' : 'sk-or-...'}
+                placeholder={(settings.provider || 'groq') === 'groq' ? 'gsk_...' : 'sk-or-...'}
               />
             </div>
 

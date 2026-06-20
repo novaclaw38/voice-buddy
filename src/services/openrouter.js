@@ -1,12 +1,12 @@
 import { getApiKey, getSettings } from '../utils/storage.js'
 
 const PROVIDERS = {
-  nvidia: {
-    url: 'https://integrate.api.nvidia.com/v1/chat/completions',
+  groq: {
+    url: 'https://api.groq.com/openai/v1/chat/completions',
     models: [
-      'meta/llama-3.2-3b-instruct',
-      'meta/llama-3.1-8b-instruct',
-      'mistralai/mistral-7b-instruct-v0.3',
+      'llama-3.2-3b-preview',
+      'llama-3.1-8b-instant',
+      'gemma2-9b-it',
     ],
     headers: (key) => ({
       Authorization: `Bearer ${key}`,
@@ -59,16 +59,18 @@ export async function chatCompletion(messages, options = {}) {
   if (!key) throw new Error('NO_API_KEY')
 
   const settings = getSettings()
-  const provider = settings.provider || 'nvidia'
-  const models = PROVIDERS[provider].models
+  const provider = settings.provider || 'groq'
+  const models = PROVIDERS[provider]?.models || PROVIDERS.groq.models
 
   for (let i = 0; i < models.length; i++) {
     try {
       return await tryModel(messages, models[i], provider, key, options)
     } catch (err) {
-      if ((err.message === 'RATE_LIMIT' || err.message.includes('no endpoints') || err.message.includes('not available')) && i < models.length - 1) {
-        continue
-      }
+      const retriable = err.message === 'RATE_LIMIT'
+        || err.message.includes('no endpoints')
+        || err.message.includes('not available')
+        || err.message.includes('model_not_found')
+      if (retriable && i < models.length - 1) continue
       throw err
     }
   }
