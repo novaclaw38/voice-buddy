@@ -197,6 +197,30 @@
 
 .btnTest:disabled { opacity: 0.5; }
 
+.keyRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.keyRow .input {
+  flex: 1;
+}
+
+.eyeBtn {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  font-size: 1.1rem;
+  color: white;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.eyeBtn:active { background: rgba(255,255,255,0.18); }
+
 .providerBtns {
   display: flex;
   gap: 8px;

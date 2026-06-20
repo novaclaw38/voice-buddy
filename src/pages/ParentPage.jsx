@@ -17,7 +17,7 @@ export default function ParentPage() {
   const [history, setHistory] = useState(() => getHistory())
   const [printData, setPrintData] = useState(null)
   const [printType, setPrintType] = useState('story')
-  const [saved, setSaved] = useState(false)
+  const [showKey, setShowKey] = useState(false)
 
   const updateSetting = (key, value) => {
     setSettings((prev) => {
@@ -27,8 +27,11 @@ export default function ParentPage() {
     })
   }
 
+  const [saved, setSaved] = useState(false)
+
   const handleSaveApiKey = () => {
-    saveApiKey(apiKey)
+    saveApiKey(apiKey.trim())
+    setApiKey(apiKey.trim())
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
@@ -40,7 +43,9 @@ export default function ParentPage() {
       setTimeout(() => setTestStatus(null), 4000)
       return
     }
-    saveApiKey(apiKey)
+    const trimmedKey = apiKey.trim()
+    setApiKey(trimmedKey)
+    saveApiKey(trimmedKey)
     setTestStatus('testing')
     setTestError('')
     try {
@@ -195,13 +200,25 @@ export default function ParentPage() {
 
             <div className={styles.field}>
               <label className={styles.label}>API Key</label>
-              <input
-                className={styles.input}
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder={(settings.provider || 'groq') === 'groq' ? 'gsk_...' : 'sk-or-...'}
-              />
+              <div className={styles.keyRow}>
+                <input
+                  className={styles.input}
+                  type={showKey ? 'text' : 'password'}
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder={(settings.provider || 'groq') === 'groq' ? 'gsk_...' : 'sk-or-...'}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                />
+                <button className={styles.eyeBtn} onClick={() => setShowKey(v => !v)} type="button">
+                  {showKey ? '🙈' : '👁️'}
+                </button>
+              </div>
+              <p className={styles.hint}>
+                Tap 👁️ to verify the key looks correct. Make sure you copied the full key.
+              </p>
             </div>
 
             <div className={styles.btnRow}>
