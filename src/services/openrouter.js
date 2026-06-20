@@ -4,9 +4,9 @@ const PROVIDERS = {
   groq: {
     url: 'https://api.groq.com/openai/v1/chat/completions',
     models: [
-      'llama-3.2-3b-preview',
       'llama-3.1-8b-instant',
-      'gemma2-9b-it',
+      'meta-llama/llama-4-scout-17b-16e-instruct',
+      'llama-3.3-70b-versatile',
     ],
     headers: (key) => ({
       Authorization: `Bearer ${key}`,
