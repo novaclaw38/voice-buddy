@@ -5,7 +5,7 @@ const KEYS = {
 }
 
 const DEFAULTS = {
-  childName: 'Byron',
+  childName: 'Dub',
   parentPin: '1234',
   voiceName: '',
   speechRate: 0.9,
