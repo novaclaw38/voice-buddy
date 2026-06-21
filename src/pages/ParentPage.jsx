@@ -72,7 +72,7 @@ export default function ParentPage() {
       {/* Header */}
       <div className={styles.header}>
         <button className={styles.backBtn} onClick={() => navigate('/')}>
-          ← Back to Buddy
+          ← Back to Dubz
         </button>
         <h1 className={styles.title}>Parent Dashboard</h1>
       </div>
@@ -150,7 +150,7 @@ export default function ParentPage() {
             </div>
 
             <div className={styles.field}>
-              <label className={styles.label}>Auto-listen after Buddy speaks</label>
+              <label className={styles.label}>Auto-listen after Dubz speaks</label>
               <div className={styles.toggle}>
                 <input
                   type="checkbox"
@@ -165,7 +165,7 @@ export default function ParentPage() {
             </div>
 
             <div className={styles.field}>
-              <label className={styles.label}>Buddy's Voice</label>
+              <label className={styles.label}>Dubz's Voice</label>
               <div className={styles.toggle}>
                 <input
                   type="checkbox"
@@ -211,7 +211,7 @@ export default function ParentPage() {
 
             <div className={styles.field}>
               <p className={styles.hint} style={{ marginBottom: 10 }}>
-                Buddy uses Groq (free). The API key is set by the app — no key entry needed here.
+                Dubz uses Groq (free). The API key is set by the app — no key entry needed here.
                 To use your own key: add <strong>GROQ_API_KEY</strong> to your Vercel project's
                 Environment Variables at <strong>vercel.com → Project → Settings → Environment Variables</strong>.
               </p>
@@ -257,7 +257,7 @@ export default function ParentPage() {
               )}
             </div>
             {history.length === 0 ? (
-              <p className={styles.empty}>No conversations yet. Go talk to Buddy!</p>
+              <p className={styles.empty}>No conversations yet. Go talk to Dubz!</p>
             ) : (
               <div className={styles.historyList}>
                 {history.map((entry, i) => (
@@ -271,7 +271,7 @@ export default function ParentPage() {
                       </span>
                     </div>
                     <p className={styles.entryUser}><strong>Child:</strong> {entry.userText}</p>
-                    <p className={styles.entryBuddy}><strong>Buddy:</strong> {entry.buddyText}</p>
+                    <p className={styles.entryBuddy}><strong>Dubz:</strong> {entry.buddyText}</p>
                     <button
                       className={styles.btnSmall}
                       onClick={() => handleSelectPrint(entry)}

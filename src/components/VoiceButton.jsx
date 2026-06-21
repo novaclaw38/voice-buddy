@@ -64,7 +64,7 @@ export default function VoiceButton({ status, onPress, onRelease, tapMode = true
       </button>
 
       <p className={styles.label}>
-        {isListening ? 'Listening...' : isSpeaking ? 'Buddy is talking...' : isThinking ? 'Thinking...' : 'Tap to talk!'}
+        {isListening ? 'Listening...' : isSpeaking ? 'Dubz is talking...' : isThinking ? 'Thinking...' : 'Tap to talk!'}
       </p>
     </div>
   )

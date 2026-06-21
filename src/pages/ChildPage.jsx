@@ -25,7 +25,7 @@ export default function ChildPage() {
 
   // Boot greeting
   useEffect(() => {
-    const greet = `Hi ${childName}! I'm Buddy! Pick something to do, or just tap the mic and talk to me!`
+    const greet = `Hi ${childName}! I'm Dubz! Pick something to do, or just tap the mic and talk to me!`
     setBuddyText(greet)
     setUiStatus('speaking')
     speech.speak(greet, () => setUiStatus('idle'))
