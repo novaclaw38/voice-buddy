@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PrintSheet from '../components/PrintSheet.jsx'
 import { getSettings, saveSettings, getHistory, clearHistory } from '../utils/storage.js'
@@ -16,6 +16,17 @@ export default function ParentPage() {
   const [history, setHistory] = useState(() => getHistory())
   const [printData, setPrintData] = useState(null)
   const [printType, setPrintType] = useState('story')
+  const [voices, setVoices] = useState([])
+
+  useEffect(() => {
+    const load = () => {
+      const v = window.speechSynthesis?.getVoices() || []
+      if (v.length) setVoices(v)
+    }
+    load()
+    window.speechSynthesis?.addEventListener('voiceschanged', load)
+    return () => window.speechSynthesis?.removeEventListener('voiceschanged', load)
+  }, [])
 
   const updateSetting = (key, value) => {
     setSettings((prev) => {
@@ -167,6 +178,33 @@ export default function ParentPage() {
                 </label>
               </div>
               <p className={styles.hint}>Robot mode uses a deep, low-pitch male voice. Exact sound depends on your device.</p>
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.label}>Voice</label>
+              <select
+                className={styles.input}
+                value={settings.voiceName || ''}
+                onChange={(e) => updateSetting('voiceName', e.target.value)}
+              >
+                <option value="">Auto (best match)</option>
+                {voices
+                  .filter((v) => v.lang.startsWith('en'))
+                  .map((v) => (
+                    <option key={v.name} value={v.name}>{v.name}</option>
+                  ))}
+                {voices.filter((v) => !v.lang.startsWith('en')).length > 0 && (
+                  <option disabled>── Other languages ──</option>
+                )}
+                {voices
+                  .filter((v) => !v.lang.startsWith('en'))
+                  .map((v) => (
+                    <option key={v.name} value={v.name}>{v.name} ({v.lang})</option>
+                  ))}
+              </select>
+              <p className={styles.hint}>
+                Google voices (e.g. "Google US English") sound best. On Android: Settings → Accessibility → Text-to-speech → install Google TTS.
+              </p>
             </div>
 
             <h2 className={styles.sectionTitle} style={{ marginTop: 24 }}>AI Connection</h2>
