@@ -12,114 +12,94 @@
   position: absolute;
   width: 140px;
   height: 140px;
-  border-radius: 20%;
-  filter: blur(22px);
-  opacity: 0.35;
+  border-radius: 50%;
+  filter: blur(24px);
+  opacity: 0.38;
   transition: background 0.5s ease;
 }
 
 .face {
   position: relative;
   z-index: 1;
-  width: 148px;
-  height: 148px;
+  width: 150px;
+  height: 150px;
   transition: all 0.3s ease;
-  filter: drop-shadow(0 4px 16px rgba(0,0,0,0.35));
+  filter: drop-shadow(0 4px 18px rgba(0,0,0,0.3));
 }
 
-/* ── State animations ── */
+/* ── State body animations ── */
 
 .idle .face {
-  animation: robotIdle 3s ease-in-out infinite;
+  animation: bearBob 3s ease-in-out infinite;
 }
 
 .listening .face {
-  animation: robotListen 0.6s ease-in-out infinite;
+  animation: bearListen 0.5s ease-in-out infinite;
 }
 
 .speaking .face {
-  animation: robotTalk 0.3s ease-in-out infinite;
+  animation: bearTalk 0.3s ease-in-out infinite;
 }
 
 .thinking .face {
-  animation: robotThink 1.4s ease-in-out infinite;
+  animation: bearThink 1.5s ease-in-out infinite;
 }
 
-@keyframes robotIdle {
+@keyframes bearBob {
   0%, 100% { transform: translateY(0) rotate(0deg); }
-  40%       { transform: translateY(-4px) rotate(-1deg); }
-  60%       { transform: translateY(-4px) rotate(1deg); }
+  35%       { transform: translateY(-5px) rotate(-1.5deg); }
+  65%       { transform: translateY(-5px) rotate(1.5deg); }
 }
 
-@keyframes robotListen {
-  0%, 100% { transform: scale(1.04) rotate(-2deg); }
-  50%       { transform: scale(1.04) rotate(2deg); }
+@keyframes bearListen {
+  0%, 100% { transform: rotate(-3deg) scale(1.04); }
+  50%       { transform: rotate(3deg)  scale(1.04); }
 }
 
-@keyframes robotTalk {
+@keyframes bearTalk {
   0%, 100% { transform: scale(1); }
-  50%       { transform: scale(1.02); }
+  50%       { transform: scale(1.03); }
 }
 
-@keyframes robotThink {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-8px); }
+@keyframes bearThink {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%       { transform: translateY(-8px) rotate(-4deg); }
 }
 
-/* ── Antenna ball pulse ── */
-.antennaDot {
-  animation: antennaPulse 2s ease-in-out infinite alternate;
+/* ── Mouth open/close when speaking ── */
+.mouthTalk {
+  animation: mouthPop 0.25s ease-in-out infinite alternate;
 }
 
-@keyframes antennaPulse {
-  from { opacity: 0.7; r: 4; }
-  to   { opacity: 1;   r: 6; }
+@keyframes mouthPop {
+  from { ry: 3; }
+  to   { ry: 8; }
 }
 
-/* ── Eye glow ── */
-.eyeGlow {
-  animation: eyePulse 2.5s ease-in-out infinite alternate;
+/* ── Ear pulse when listening ── */
+.earPulse {
+  animation: earBlink 0.6s ease-in-out infinite alternate;
 }
 
-@keyframes eyePulse {
-  from { opacity: 0.85; }
-  to   { opacity: 1; }
-}
-
-/* ── Speaker bars (speaking state) ── */
-.speakerBars rect {
-  animation: barBounce 0.4s ease-in-out infinite alternate;
-  transform-box: fill-box;
-  transform-origin: bottom;
-}
-.speakerBars rect:nth-child(1) { animation-delay: 0s; }
-.speakerBars rect:nth-child(2) { animation-delay: 0.07s; }
-.speakerBars rect:nth-child(3) { animation-delay: 0.14s; }
-.speakerBars rect:nth-child(4) { animation-delay: 0.07s; }
-.speakerBars rect:nth-child(5) { animation-delay: 0.14s; }
-.speakerBars rect:nth-child(6) { animation-delay: 0.05s; }
-
-@keyframes barBounce {
-  from { transform: scaleY(0.35); opacity: 0.6; }
-  to   { transform: scaleY(1);    opacity: 1; }
+@keyframes earBlink {
+  from { opacity: 0.2; r: 4; }
+  to   { opacity: 0.6; r: 7; }
 }
 
 /* ── Thinking dots ── */
-.thinkDot1 { animation: dotPop 1.2s ease-in-out 0s infinite; }
-.thinkDot2 { animation: dotPop 1.2s ease-in-out 0.2s infinite; }
-.thinkDot3 { animation: dotPop 1.2s ease-in-out 0.4s infinite; }
+.thinkDot1 { animation: dotPop 1.2s ease-in-out 0s      infinite; }
+.thinkDot2 { animation: dotPop 1.2s ease-in-out 0.2s    infinite; }
+.thinkDot3 { animation: dotPop 1.2s ease-in-out 0.4s    infinite; }
 
 @keyframes dotPop {
-  0%, 100% { opacity: 0.25; transform: scale(0.7); transform-box: fill-box; transform-origin: center; }
-  50%       { opacity: 1;    transform: scale(1.3); }
-}
-
-/* ── Status LED blink ── */
-.ledOn {
-  animation: ledBlink 0.8s ease-in-out infinite alternate;
-}
-
-@keyframes ledBlink {
-  from { opacity: 0.6; }
-  to   { opacity: 1; }
+  0%, 100% {
+    opacity: 0.25;
+    transform: scale(0.7);
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.35);
+  }
 }

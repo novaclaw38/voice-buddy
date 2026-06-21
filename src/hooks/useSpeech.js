@@ -12,14 +12,13 @@ export function useSpeech(settings) {
   const recRef = useRef(null)
   const synthRef = useRef(window.speechSynthesis)
   const onResultRef = useRef(null)
-  const listeningRef = useRef(false) // guards against Android auto-restart
+  const listeningRef = useRef(false)
 
   const supported = {
     stt: !!SpeechRec,
     tts: !!synthRef.current,
   }
 
-  // Load voices (Chrome async, others sync)
   useEffect(() => {
     const loadVoices = () => {
       const v = synthRef.current.getVoices()
@@ -80,23 +79,34 @@ export function useSpeech(settings) {
     recRef.current = rec
 
     let latestTranscript = ''
+    let stopped = false
 
-    // Auto-stop after 12 seconds so it never hangs
-    const timeout = setTimeout(() => {
-      if (listeningRef.current) rec.stop()
-    }, 12000)
+    const forceStop = () => {
+      if (!stopped) {
+        stopped = true
+        rec.stop()
+      }
+    }
+
+    // Hard limit: stop after 10s no matter what
+    const timeout = setTimeout(forceStop, 10000)
 
     rec.onresult = (e) => {
-      const text = Array.from(e.results)
-        .map((r) => r[0].transcript)
-        .join('')
+      const results = Array.from(e.results)
+      const text = results.map((r) => r[0].transcript).join('')
       latestTranscript = text
       setTranscript(text)
+
+      // Force stop as soon as we get a final result — Android Chrome
+      // often won't fire onend on its own with continuous: false
+      if (results[results.length - 1]?.isFinal) {
+        forceStop()
+      }
     }
 
     rec.onend = () => {
       clearTimeout(timeout)
-      if (!listeningRef.current) return // stopped intentionally, ignore
+      if (!listeningRef.current) return
       listeningRef.current = false
       recRef.current = null
       setStatus('idle')
@@ -132,27 +142,14 @@ export function useSpeech(settings) {
 
     setStatus('speaking')
 
-    utter.onend = () => {
-      setStatus('idle')
-      onDone?.()
-    }
-    utter.onerror = () => {
-      setStatus('idle')
-      onDone?.()
-    }
+    utter.onend = () => { setStatus('idle'); onDone?.() }
+    utter.onerror = () => { setStatus('idle'); onDone?.() }
 
-    // iOS Safari requires speak() in a microtask after user gesture
     setTimeout(() => synthRef.current.speak(utter), 0)
   }, [getVoice, settings?.speechRate, settings?.speechPitch, settings?.robotVoice, stopListening])
 
   return {
-    status,
-    transcript,
-    voices,
-    supported,
-    startListening,
-    stopListening,
-    speak,
-    stopSpeaking,
+    status, transcript, voices, supported,
+    startListening, stopListening, speak, stopSpeaking,
   }
 }
