@@ -5,7 +5,7 @@ const KEYS = {
 }
 
 const DEFAULTS = {
-  childName: 'Dub',
+  childName: 'Dubz',
   parentPin: '1234',
   provider: 'groq',
   voiceName: '',
