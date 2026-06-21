@@ -12,6 +12,7 @@ const DEFAULTS = {
   speechRate: 0.9,
   speechPitch: 1.1,
   autoListen: false,
+  robotVoice: false,
   avatarColor: '#7c3aed',
   morningRoutine: [
     'Wake up and stretch!',

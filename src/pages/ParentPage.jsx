@@ -153,6 +153,22 @@ export default function ParentPage() {
               </div>
             </div>
 
+            <div className={styles.field}>
+              <label className={styles.label}>Buddy's Voice</label>
+              <div className={styles.toggle}>
+                <input
+                  type="checkbox"
+                  id="robotVoice"
+                  checked={settings.robotVoice || false}
+                  onChange={(e) => updateSetting('robotVoice', e.target.checked)}
+                />
+                <label htmlFor="robotVoice" className={styles.toggleLabel}>
+                  {settings.robotVoice ? '🤖 Robot (deep male voice)' : '😊 Friendly (default)'}
+                </label>
+              </div>
+              <p className={styles.hint}>Robot mode uses a deep, low-pitch male voice. Exact sound depends on your device.</p>
+            </div>
+
             <h2 className={styles.sectionTitle} style={{ marginTop: 24 }}>AI Connection</h2>
 
             <div className={styles.field}>

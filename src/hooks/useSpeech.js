@@ -35,13 +35,19 @@ export function useSpeech(settings) {
       const match = voices.find((v) => v.name === settings.voiceName)
       if (match) return match
     }
-    // Prefer a female English voice for a friendly feel
+    if (settings?.robotVoice) {
+      return (
+        voices.find((v) => v.lang.startsWith('en') && /male|man/i.test(v.name)) ||
+        voices.find((v) => v.lang.startsWith('en')) ||
+        voices[0]
+      )
+    }
     return (
       voices.find((v) => v.lang.startsWith('en') && /female|woman/i.test(v.name)) ||
       voices.find((v) => v.lang.startsWith('en')) ||
       voices[0]
     )
-  }, [voices, settings?.voiceName])
+  }, [voices, settings?.voiceName, settings?.robotVoice])
 
   const stopListening = useCallback(() => {
     if (recRef.current) {
@@ -122,8 +128,8 @@ export function useSpeech(settings) {
 
     const utter = new SpeechSynthesisUtterance(text)
     utter.voice = getVoice()
-    utter.rate = settings?.speechRate ?? 0.9
-    utter.pitch = settings?.speechPitch ?? 1.1
+    utter.rate = settings?.robotVoice ? 0.85 : (settings?.speechRate ?? 0.9)
+    utter.pitch = settings?.robotVoice ? 0.3 : (settings?.speechPitch ?? 1.1)
     utter.volume = 1
 
     setStatus('speaking')
