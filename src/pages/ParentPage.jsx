@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PrintSheet from '../components/PrintSheet.jsx'
-import { getSettings, saveSettings, getApiKey, saveApiKey, getHistory, clearHistory } from '../utils/storage.js'
+import { getSettings, saveSettings, getHistory, clearHistory } from '../utils/storage.js'
 import { testConnection } from '../services/openrouter.js'
 import styles from './ParentPage.module.css'
 
@@ -11,13 +11,11 @@ export default function ParentPage() {
   const navigate = useNavigate()
   const [tab, setTab] = useState('Settings')
   const [settings, setSettings] = useState(() => getSettings())
-  const [apiKey, setApiKey] = useState(() => getApiKey())
-  const [testStatus, setTestStatus] = useState(null) // null | 'testing' | 'ok' | string(error)
+  const [testStatus, setTestStatus] = useState(null) // null | 'testing' | 'ok' | 'fail'
   const [testError, setTestError] = useState('')
   const [history, setHistory] = useState(() => getHistory())
   const [printData, setPrintData] = useState(null)
   const [printType, setPrintType] = useState('story')
-  const [showKey, setShowKey] = useState(false)
 
   const updateSetting = (key, value) => {
     setSettings((prev) => {
@@ -27,25 +25,7 @@ export default function ParentPage() {
     })
   }
 
-  const [saved, setSaved] = useState(false)
-
-  const handleSaveApiKey = () => {
-    saveApiKey(apiKey.trim())
-    setApiKey(apiKey.trim())
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
-  }
-
   const handleTestConnection = async () => {
-    if (!apiKey.trim()) {
-      setTestError('Please enter an API key first.')
-      setTestStatus('fail')
-      setTimeout(() => setTestStatus(null), 4000)
-      return
-    }
-    const trimmedKey = apiKey.trim()
-    setApiKey(trimmedKey)
-    saveApiKey(trimmedKey)
     setTestStatus('testing')
     setTestError('')
     try {
@@ -173,65 +153,23 @@ export default function ParentPage() {
               </div>
             </div>
 
-            <h2 className={styles.sectionTitle} style={{ marginTop: 24 }}>AI Provider</h2>
+            <h2 className={styles.sectionTitle} style={{ marginTop: 24 }}>AI Connection</h2>
 
             <div className={styles.field}>
-              <label className={styles.label}>Provider</label>
-              <div className={styles.providerBtns}>
-                <button
-                  className={`${styles.providerBtn} ${(settings.provider || 'groq') === 'groq' ? styles.activeProvider : ''}`}
-                  onClick={() => updateSetting('provider', 'groq')}
-                >
-                  🟢 Groq (Free)
-                </button>
-                <button
-                  className={`${styles.providerBtn} ${settings.provider === 'openrouter' ? styles.activeProvider : ''}`}
-                  onClick={() => updateSetting('provider', 'openrouter')}
-                >
-                  🔵 OpenRouter
+              <p className={styles.hint} style={{ marginBottom: 10 }}>
+                Buddy uses Groq (free). The API key is set by the app — no key entry needed here.
+                To use your own key: add <strong>GROQ_API_KEY</strong> to your Vercel project's
+                Environment Variables at <strong>vercel.com → Project → Settings → Environment Variables</strong>.
+              </p>
+              <div className={styles.btnRow}>
+                <button className={styles.btnTest} onClick={handleTestConnection} disabled={testStatus === 'testing'}>
+                  {testStatus === 'testing' ? 'Testing...' : testStatus === 'ok' ? '✓ Connected!' : testStatus === 'fail' ? '✗ Failed' : 'Test Connection'}
                 </button>
               </div>
-              {(settings.provider || 'groq') === 'groq' ? (
-                <p className={styles.hint}>Get a free key at <strong>console.groq.com</strong> → sign up → API Keys → Create key. Free, no card needed.</p>
-              ) : (
-                <p className={styles.hint}>Get a free key at <strong>openrouter.ai</strong>. Free models may have availability issues.</p>
+              {testStatus === 'fail' && testError && (
+                <p className={styles.testError}>{testError}</p>
               )}
             </div>
-
-            <div className={styles.field}>
-              <label className={styles.label}>API Key</label>
-              <div className={styles.keyRow}>
-                <input
-                  className={styles.input}
-                  type={showKey ? 'text' : 'password'}
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder={(settings.provider || 'groq') === 'groq' ? 'gsk_...' : 'sk-or-...'}
-                  autoComplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="none"
-                  spellCheck={false}
-                />
-                <button className={styles.eyeBtn} onClick={() => setShowKey(v => !v)} type="button">
-                  {showKey ? '🙈' : '👁️'}
-                </button>
-              </div>
-              <p className={styles.hint}>
-                Tap 👁️ to verify the key looks correct. Make sure you copied the full key.
-              </p>
-            </div>
-
-            <div className={styles.btnRow}>
-              <button className={styles.btnSave} onClick={handleSaveApiKey}>
-                {saved ? '✓ Saved!' : 'Save Key'}
-              </button>
-              <button className={styles.btnTest} onClick={handleTestConnection} disabled={testStatus === 'testing'}>
-                {testStatus === 'testing' ? 'Testing...' : testStatus === 'ok' ? '✓ Connected!' : testStatus === 'fail' ? '✗ Failed' : 'Test Connection'}
-              </button>
-            </div>
-            {testStatus === 'fail' && testError && (
-              <p className={styles.testError}>{testError}</p>
-            )}
           </div>
         )}
 
