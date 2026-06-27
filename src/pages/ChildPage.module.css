@@ -3,26 +3,76 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: linear-gradient(160deg, #4c1d95 0%, #1e3a8a 100%);
   overflow: hidden;
   position: relative;
   padding-bottom: env(safe-area-inset-bottom);
+  transition: background 0.8s ease;
 }
 
-/* Starfield background */
+/* Rich twinkling starfield */
 .page::before {
   content: '';
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.4) 0%, transparent 100%),
-    radial-gradient(1px 1px at 60% 15%, rgba(255,255,255,0.3) 0%, transparent 100%),
-    radial-gradient(1px 1px at 80% 60%, rgba(255,255,255,0.35) 0%, transparent 100%),
-    radial-gradient(1px 1px at 40% 70%, rgba(255,255,255,0.25) 0%, transparent 100%),
-    radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
-    radial-gradient(1px 1px at 90% 20%, rgba(255,255,255,0.2) 0%, transparent 100%);
+    radial-gradient(2px 2px at 10% 12%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 28% 8%,  rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(2px 2px at 55% 5%,  rgba(255,255,255,0.55) 0%, transparent 100%),
+    radial-gradient(1px 1px at 74% 14%, rgba(255,255,255,0.35) 0%, transparent 100%),
+    radial-gradient(2px 2px at 90% 9%,  rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 18% 35%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(2px 2px at 40% 28%, rgba(255,255,255,0.45) 0%, transparent 100%),
+    radial-gradient(1px 1px at 68% 32%, rgba(255,255,255,0.35) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 42%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(2px 2px at 5%  60%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 30% 68%, rgba(255,255,255,0.25) 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 72%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(2px 2px at 92% 65%, rgba(255,255,255,0.45) 0%, transparent 100%),
+    radial-gradient(1px 1px at 15% 88%, rgba(255,255,255,0.35) 0%, transparent 100%),
+    radial-gradient(2px 2px at 78% 90%, rgba(255,255,255,0.4) 0%, transparent 100%);
   pointer-events: none;
+  animation: twinkle 4s ease-in-out infinite alternate;
 }
+
+@keyframes twinkle {
+  0%   { opacity: 0.6; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+/* ── Floating decorations ──────────────────────────────── */
+.deco {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.deco span {
+  position: absolute;
+  color: rgba(255,255,255,0.22);
+  font-size: 1.1rem;
+  animation: floatDrift 10s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+@keyframes floatDrift {
+  0%   { transform: translateY(0) rotate(0deg);   opacity: 0.15; }
+  50%  { opacity: 0.4; }
+  100% { transform: translateY(-30px) rotate(20deg); opacity: 0.18; }
+}
+
+.d1  { left:  6%; top: 18%; font-size: 1.4rem; animation-duration: 9s;  animation-delay: 0s;   }
+.d2  { left: 88%; top: 10%; font-size: 0.9rem; animation-duration: 11s; animation-delay: 1s;   }
+.d3  { left: 20%; top: 75%; font-size: 1.2rem; animation-duration: 8s;  animation-delay: 2s;   }
+.d4  { left: 72%; top: 82%; font-size: 1rem;   animation-duration: 12s; animation-delay: 0.5s; }
+.d5  { left: 50%; top:  8%; font-size: 0.8rem; animation-duration: 10s; animation-delay: 3s;   }
+.d6  { left: 80%; top: 50%; font-size: 1.3rem; animation-duration: 7s;  animation-delay: 1.5s; }
+.d7  { left:  3%; top: 45%; font-size: 0.9rem; animation-duration: 13s; animation-delay: 2.5s; }
+.d8  { left: 38%; top: 90%; font-size: 1.1rem; animation-duration: 9s;  animation-delay: 4s;   }
+.d9  { left: 93%; top: 30%; font-size: 0.8rem; animation-duration: 11s; animation-delay: 0.8s; }
+.d10 { left: 60%; top: 60%; font-size: 1rem;   animation-duration: 8s;  animation-delay: 3.5s; }
 
 .topBar {
   display: flex;
@@ -32,6 +82,7 @@
   padding: 12px 16px 4px;
   flex-shrink: 0;
   z-index: 10;
+  position: relative;
 }
 
 .modeLabel {

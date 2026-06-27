@@ -75,6 +75,19 @@ export default function BuddyAvatar({ status = 'idle', avatarColor }) {
         <circle cx="24" cy="65" r="9" fill="rgba(255,140,140,0.22)" />
         <circle cx="76" cy="65" r="9" fill="rgba(255,140,140,0.22)" />
 
+        {/* Speaking sparkles */}
+        {isSpeaking && (
+          <g>
+            <polygon className={styles.spark1} points="8,18 9.5,22 13,22 10.5,24.5 11.5,28 8,26 4.5,28 5.5,24.5 3,22 6.5,22" fill="#fcd34d" />
+            <polygon className={styles.spark2} points="92,15 93,18 96,18 94,20 94.5,23 92,21.5 89.5,23 90,20 88,18 91,18" fill="#fcd34d" />
+            <polygon className={styles.spark3} points="5,75 6.5,79 10,79 7.5,81 8.5,85 5,82.5 1.5,85 2.5,81 0,79 3.5,79" fill="#60a5fa" />
+            <polygon className={styles.spark4} points="95,72 96.5,76 100,76 97.5,78 98.5,82 95,79.5 91.5,82 92.5,78 90,76 93.5,76" fill="#60a5fa" />
+            <circle className={styles.spark5} cx="20" cy="10" r="3" fill="#f9a8d4" />
+            <circle className={styles.spark6} cx="80" cy="8"  r="2" fill="#86efac" />
+            <circle className={styles.spark7} cx="50" cy="3"  r="2.5" fill="#fcd34d" />
+          </g>
+        )}
+
         {/* Thinking dots */}
         {isThinking && (
           <g>

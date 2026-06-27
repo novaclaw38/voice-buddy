@@ -1,9 +1,9 @@
 .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
-  max-width: 340px;
+  max-width: 360px;
   padding: 0 4px;
 }
 
@@ -12,34 +12,65 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  border-radius: 20px;
-  padding: 18px 12px;
-  border: 2px solid transparent;
-  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  gap: 8px;
+  border-radius: 24px;
+  padding: 20px 12px;
+  border: 2px solid rgba(255,255,255,0.15);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.15);
   -webkit-user-select: none;
   user-select: none;
+  animation: tilePop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  will-change: transform;
+  transition: box-shadow 0.2s ease;
+}
+
+.tile:nth-child(1) { animation-delay: 0s; }
+.tile:nth-child(2) { animation-delay: 0.07s; }
+.tile:nth-child(3) { animation-delay: 0.13s; }
+.tile:nth-child(4) { animation-delay: 0.19s; }
+
+@keyframes tilePop {
+  from { transform: scale(0.6) translateY(18px); opacity: 0; }
+  to   { transform: scale(1)   translateY(0);    opacity: 1; }
 }
 
 .tile:active {
-  transform: scale(0.93);
+  transform: scale(0.91) !important;
+}
+
+.tile:hover:not(:active) {
+  box-shadow: 0 8px 28px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
 .active {
-  border-color: rgba(255, 255, 255, 0.8);
-  box-shadow: 0 0 0 3px var(--glow, white), 0 4px 16px rgba(0,0,0,0.3);
-  transform: scale(1.03);
+  border-color: rgba(255,255,255,0.85);
+  box-shadow: 0 0 0 3px var(--glow, white), 0 6px 20px rgba(0,0,0,0.3);
+  transform: scale(1.05);
+  animation: none !important;
 }
 
 .emoji {
-  font-size: 2.2rem;
+  font-size: 2.6rem;
   line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+  animation: emojiWiggle 3s ease-in-out infinite;
+}
+
+.tile:nth-child(1) .emoji { animation-delay: 0s; }
+.tile:nth-child(2) .emoji { animation-delay: 0.6s; }
+.tile:nth-child(3) .emoji { animation-delay: 1.2s; }
+.tile:nth-child(4) .emoji { animation-delay: 1.8s; }
+
+@keyframes emojiWiggle {
+  0%, 90%, 100% { transform: rotate(0deg) scale(1); }
+  93%            { transform: rotate(-8deg) scale(1.1); }
+  97%            { transform: rotate(8deg) scale(1.1); }
 }
 
 .label {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: white;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }

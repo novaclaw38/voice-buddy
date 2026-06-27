@@ -198,8 +198,34 @@ export default function ChildPage() {
     navigate('/parent')
   }
 
+  const modeColors = {
+    chat:     ['#4c1d95', '#1e3a8a'],
+    story:    ['#5b21b6', '#312e81'],
+    game:     ['#831843', '#1e1b4b'],
+    activity: ['#7c2d12', '#1e3a8a'],
+    routine:  ['#14532d', '#1e3a8a'],
+  }
+  const [from, to] = modeColors[chat.mode] || modeColors.chat
+
   return (
-    <div className={styles.page}>
+    <div
+      className={styles.page}
+      style={{ background: `linear-gradient(160deg, ${from} 0%, ${to} 100%)` }}
+    >
+      {/* Floating background decorations */}
+      <div className={styles.deco} aria-hidden="true">
+        <span className={styles.d1}>✦</span>
+        <span className={styles.d2}>★</span>
+        <span className={styles.d3}>✧</span>
+        <span className={styles.d4}>☆</span>
+        <span className={styles.d5}>✦</span>
+        <span className={styles.d6}>★</span>
+        <span className={styles.d7}>✧</span>
+        <span className={styles.d8}>✦</span>
+        <span className={styles.d9}>☆</span>
+        <span className={styles.d10}>★</span>
+      </div>
+
       {/* Top bar */}
       <div className={styles.topBar}>
         <span className={styles.modeLabel}>
