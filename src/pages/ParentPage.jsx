@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PrintSheet from '../components/PrintSheet.jsx'
-import { getSettings, saveSettings, getHistory, clearHistory } from '../utils/storage.js'
+import { getSettings, saveSettings } from '../utils/storage.js'
 import { testConnection } from '../services/openrouter.js'
+import { fetchHistory, deleteHistory } from '../services/historyService.js'
+import { supabase } from '../lib/supabase.js'
 import styles from './ParentPage.module.css'
 
 const TABS = ['Settings', 'Routines', 'History', 'Print']
@@ -11,11 +13,37 @@ export default function ParentPage() {
   const navigate = useNavigate()
   const [tab, setTab] = useState('Settings')
   const [settings, setSettings] = useState(() => getSettings())
-  const [testStatus, setTestStatus] = useState(null) // null | 'testing' | 'ok' | 'fail'
+  const [testStatus, setTestStatus] = useState(null)
   const [testError, setTestError] = useState('')
-  const [history, setHistory] = useState(() => getHistory())
+  const [history, setHistory] = useState([])
+  const [historyLoading, setHistoryLoading] = useState(false)
   const [printData, setPrintData] = useState(null)
   const [printType, setPrintType] = useState('story')
+  const [voices, setVoices] = useState([])
+
+  useEffect(() => {
+    const load = () => {
+      const v = window.speechSynthesis?.getVoices() || []
+      if (v.length) setVoices(v)
+    }
+    load()
+    window.speechSynthesis?.addEventListener('voiceschanged', load)
+    return () => window.speechSynthesis?.removeEventListener('voiceschanged', load)
+  }, [])
+
+  // Load history from Supabase when History tab opens
+  useEffect(() => {
+    if (tab !== 'History') return
+    setHistoryLoading(true)
+    fetchHistory().then((rows) => {
+      setHistory(rows.map((r) => ({
+        ts: r.ts,
+        mode: r.mode,
+        userText: r.user_text,
+        buddyText: r.buddy_text,
+      })))
+    }).catch(console.error).finally(() => setHistoryLoading(false))
+  }, [tab])
 
   const updateSetting = (key, value) => {
     setSettings((prev) => {
@@ -39,11 +67,15 @@ export default function ParentPage() {
     }
   }
 
-  const handleClearHistory = () => {
+  const handleClearHistory = async () => {
     if (window.confirm('Clear all chat history? This cannot be undone.')) {
-      clearHistory()
+      await deleteHistory()
       setHistory([])
     }
+  }
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
   }
 
   const handlePrint = () => {
@@ -61,9 +93,12 @@ export default function ParentPage() {
       {/* Header */}
       <div className={styles.header}>
         <button className={styles.backBtn} onClick={() => navigate('/')}>
-          ← Back to Buddy
+          ← Back to Dubz
         </button>
         <h1 className={styles.title}>Parent Dashboard</h1>
+        <button className={styles.btnDanger} style={{ flexShrink: 0 }} onClick={handleLogout}>
+          Log out
+        </button>
       </div>
 
       {/* Tabs */}
@@ -139,7 +174,7 @@ export default function ParentPage() {
             </div>
 
             <div className={styles.field}>
-              <label className={styles.label}>Auto-listen after Buddy speaks</label>
+              <label className={styles.label}>Auto-listen after Dubz speaks</label>
               <div className={styles.toggle}>
                 <input
                   type="checkbox"
@@ -153,11 +188,54 @@ export default function ParentPage() {
               </div>
             </div>
 
+            <div className={styles.field}>
+              <label className={styles.label}>Dubz's Voice</label>
+              <div className={styles.toggle}>
+                <input
+                  type="checkbox"
+                  id="robotVoice"
+                  checked={settings.robotVoice || false}
+                  onChange={(e) => updateSetting('robotVoice', e.target.checked)}
+                />
+                <label htmlFor="robotVoice" className={styles.toggleLabel}>
+                  {settings.robotVoice ? '🤖 Robot (deep male voice)' : '😊 Friendly (default)'}
+                </label>
+              </div>
+              <p className={styles.hint}>Robot mode uses a deep, low-pitch male voice. Exact sound depends on your device.</p>
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.label}>Voice</label>
+              <select
+                className={styles.input}
+                value={settings.voiceName || ''}
+                onChange={(e) => updateSetting('voiceName', e.target.value)}
+              >
+                <option value="">Auto (best match)</option>
+                {voices
+                  .filter((v) => v.lang.startsWith('en'))
+                  .map((v) => (
+                    <option key={v.name} value={v.name}>{v.name}</option>
+                  ))}
+                {voices.filter((v) => !v.lang.startsWith('en')).length > 0 && (
+                  <option disabled>── Other languages ──</option>
+                )}
+                {voices
+                  .filter((v) => !v.lang.startsWith('en'))
+                  .map((v) => (
+                    <option key={v.name} value={v.name}>{v.name} ({v.lang})</option>
+                  ))}
+              </select>
+              <p className={styles.hint}>
+                Google voices (e.g. "Google US English") sound best. On Android: Settings → Accessibility → Text-to-speech → install Google TTS.
+              </p>
+            </div>
+
             <h2 className={styles.sectionTitle} style={{ marginTop: 24 }}>AI Connection</h2>
 
             <div className={styles.field}>
               <p className={styles.hint} style={{ marginBottom: 10 }}>
-                Buddy uses Groq (free). The API key is set by the app — no key entry needed here.
+                Dubz uses Groq (free). The API key is set by the app — no key entry needed here.
                 To use your own key: add <strong>GROQ_API_KEY</strong> to your Vercel project's
                 Environment Variables at <strong>vercel.com → Project → Settings → Environment Variables</strong>.
               </p>
@@ -202,8 +280,10 @@ export default function ParentPage() {
                 </button>
               )}
             </div>
-            {history.length === 0 ? (
-              <p className={styles.empty}>No conversations yet. Go talk to Buddy!</p>
+            {historyLoading ? (
+              <p className={styles.empty}>Loading history...</p>
+            ) : history.length === 0 ? (
+              <p className={styles.empty}>No conversations yet. Go talk to Dubz!</p>
             ) : (
               <div className={styles.historyList}>
                 {history.map((entry, i) => (
@@ -217,7 +297,7 @@ export default function ParentPage() {
                       </span>
                     </div>
                     <p className={styles.entryUser}><strong>Child:</strong> {entry.userText}</p>
-                    <p className={styles.entryBuddy}><strong>Buddy:</strong> {entry.buddyText}</p>
+                    <p className={styles.entryBuddy}><strong>Dubz:</strong> {entry.buddyText}</p>
                     <button
                       className={styles.btnSmall}
                       onClick={() => handleSelectPrint(entry)}

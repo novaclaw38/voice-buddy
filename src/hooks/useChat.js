@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react'
 import { chatCompletion } from '../services/openrouter.js'
-import { appendHistory } from '../utils/storage.js'
+import { addHistory } from '../services/historyService.js'
 import { PROMPTS, MODE_INTROS } from '../utils/prompts.js'
 
 const MAX_HISTORY = 16
@@ -61,9 +61,8 @@ export function useChat(settings) {
       messagesRef.current = finalMsgs
       setMessages(finalMsgs)
 
-      appendHistory({
+      addHistory({
         ts: Date.now(),
-        sessionId: sessionRef.current.ts,
         mode: currentM,
         userText,
         buddyText: reply,

@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react'
 import styles from './BuddyAvatar.module.css'
 
 const STATE_COLORS = {
@@ -11,79 +10,81 @@ const STATE_COLORS = {
 export default function BuddyAvatar({ status = 'idle', avatarColor }) {
   const colors = STATE_COLORS[status] || STATE_COLORS.idle
   const faceColor = avatarColor && status === 'idle' ? avatarColor : colors.face
+  const isListening = status === 'listening'
+  const isSpeaking  = status === 'speaking'
+  const isThinking  = status === 'thinking'
 
   return (
     <div className={`${styles.container} ${styles[status]}`}>
-      {/* Glow halo */}
       <div className={styles.glow} style={{ background: colors.glow }} />
 
-      <svg
-        viewBox="0 0 100 100"
-        className={styles.face}
-        aria-label={`Buddy is ${status}`}
-      >
-        {/* Head */}
-        <circle cx="50" cy="50" r="45" fill={faceColor} />
-        <circle cx="50" cy="50" r="42" fill={faceColor} stroke="rgba(255,255,255,0.15)" strokeWidth="2" />
+      <svg viewBox="0 0 100 100" className={styles.face} aria-label={`Buddy is ${status}`}>
 
         {/* Ears */}
-        <circle cx="8" cy="50" r="8" fill={faceColor} />
-        <circle cx="92" cy="50" r="8" fill={faceColor} />
-        {status === 'listening' && (
+        <circle cx="22" cy="24" r="18" fill={faceColor} />
+        <circle cx="78" cy="24" r="18" fill={faceColor} />
+        {/* Inner ear */}
+        <circle cx="22" cy="24" r="11" fill="rgba(255,190,190,0.45)" />
+        <circle cx="78" cy="24" r="11" fill="rgba(255,190,190,0.45)" />
+        {/* Ear wiggle dots when listening */}
+        {isListening && (
           <>
-            <circle cx="8" cy="50" r="4" fill="rgba(255,255,255,0.4)" />
-            <circle cx="92" cy="50" r="4" fill="rgba(255,255,255,0.4)" />
+            <circle cx="22" cy="24" r="5" fill="rgba(255,255,255,0.35)" className={styles.earPulse} />
+            <circle cx="78" cy="24" r="5" fill="rgba(255,255,255,0.35)" className={styles.earPulse} />
+          </>
+        )}
+
+        {/* Head */}
+        <circle cx="50" cy="58" r="39" fill={faceColor} />
+        {/* Head sheen */}
+        <circle cx="50" cy="58" r="37" fill="rgba(255,255,255,0.06)" />
+
+        {/* Muzzle */}
+        <ellipse cx="50" cy="71" rx="17" ry="12" fill="rgba(255,255,255,0.18)" />
+
+        {/* Raised eyebrows when listening */}
+        {isListening && (
+          <>
+            <path d="M 27 40 Q 35 35 42 40" stroke="rgba(255,255,255,0.7)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            <path d="M 58 40 Q 65 35 73 40" stroke="rgba(255,255,255,0.7)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
           </>
         )}
 
         {/* Eyes */}
-        <g className={styles.eyes}>
-          {/* Left eye */}
-          <ellipse cx="33" cy="40" rx="9" ry={status === 'speaking' ? 9 : 9} fill="white" />
-          <circle cx="35" cy="40" r="5" fill="#1e1b4b" />
-          <circle cx="37" cy="38" r="2" fill="white" />
+        <circle cx="35" cy="50" r={isListening ? 10 : 9} fill="white" />
+        <circle cx="37" cy="50" r="5" fill="#1e1b4b" />
+        <circle cx="38" cy="48" r="2" fill="white" />
 
-          {/* Right eye */}
-          <ellipse cx="67" cy="40" rx="9" ry={status === 'speaking' ? 9 : 9} fill="white" />
-          <circle cx="65" cy="40" r="5" fill="#1e1b4b" />
-          <circle cx="67" cy="38" r="2" fill="white" />
-        </g>
+        <circle cx="65" cy="50" r={isListening ? 10 : 9} fill="white" />
+        <circle cx="63" cy="50" r="5" fill="#1e1b4b" />
+        <circle cx="64" cy="48" r="2" fill="white" />
 
-        {/* Eyebrows */}
-        {status === 'listening' && (
-          <>
-            <path d="M 24 28 Q 33 24 42 28" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round" />
-            <path d="M 58 28 Q 67 24 76 28" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round" />
-          </>
+        {/* Nose */}
+        <ellipse cx="50" cy="63" rx="5.5" ry="4" fill="rgba(0,0,0,0.35)" />
+
+        {/* Mouth */}
+        {isSpeaking ? (
+          <ellipse cx="50" cy="73" rx="9" ry="6" fill="rgba(0,0,0,0.38)" className={styles.mouthTalk} />
+        ) : isThinking ? (
+          <path d="M 40 73 Q 50 73 60 73" stroke="rgba(255,255,255,0.55)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+        ) : (
+          <path d="M 38 72 Q 50 81 62 72" stroke="rgba(255,255,255,0.7)" strokeWidth="3" fill="none" strokeLinecap="round" />
         )}
 
         {/* Cheek blush */}
-        <circle cx="22" cy="58" r="8" fill="rgba(255,255,255,0.15)" />
-        <circle cx="78" cy="58" r="8" fill="rgba(255,255,255,0.15)" />
-
-        {/* Mouth */}
-        {status === 'speaking' ? (
-          <ellipse cx="50" cy="66" rx="12" ry={8} fill="rgba(0,0,0,0.4)" className={styles.mouthTalk} />
-        ) : status === 'thinking' ? (
-          <path d="M 38 65 Q 50 65 62 65" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round" />
-        ) : (
-          <path d="M 35 63 Q 50 74 65 63" stroke="white" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-        )}
+        <circle cx="24" cy="65" r="9" fill="rgba(255,140,140,0.22)" />
+        <circle cx="76" cy="65" r="9" fill="rgba(255,140,140,0.22)" />
 
         {/* Thinking dots */}
-        {status === 'thinking' && (
-          <g className={styles.thinkingDots}>
-            <circle cx="42" cy="80" r="3" fill="rgba(255,255,255,0.6)" />
-            <circle cx="50" cy="80" r="3" fill="rgba(255,255,255,0.6)" />
-            <circle cx="58" cy="80" r="3" fill="rgba(255,255,255,0.6)" />
+        {isThinking && (
+          <g>
+            <circle className={styles.thinkDot1} cx="38" cy="82" r="3.5" fill="rgba(255,255,255,0.7)" />
+            <circle className={styles.thinkDot2} cx="50" cy="82" r="3.5" fill="rgba(255,255,255,0.7)" />
+            <circle className={styles.thinkDot3} cx="62" cy="82" r="3.5" fill="rgba(255,255,255,0.7)" />
           </g>
         )}
-      </svg>
 
-      {/* Antenna */}
-      <div className={styles.antenna}>
-        <div className={styles.antennaBall} style={{ background: colors.glow }} />
-      </div>
+      </svg>
     </div>
   )
 }
