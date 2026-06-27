@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BuddyAvatar from '../components/BuddyAvatar.jsx'
 import SpeechBubble from '../components/SpeechBubble.jsx'
@@ -8,6 +8,8 @@ import ParentPin from '../components/ParentPin.jsx'
 import { useSpeech } from '../hooks/useSpeech.js'
 import { useChat } from '../hooks/useChat.js'
 import { getSettings } from '../utils/storage.js'
+import { supabase } from '../lib/supabase.js'
+import { fetchMessageById, markPlayed } from '../services/messageService.js'
 import styles from './ChildPage.module.css'
 
 export default function ChildPage() {
@@ -20,8 +22,57 @@ export default function ChildPage() {
 
   const speech = useSpeech(settings)
   const chat = useChat(settings)
+  const [parentMessage, setParentMessage] = useState(null)
+  const parentAudioRef = useRef(null)
 
   const childName = settings.childName || 'there'
+
+  // Realtime: listen for parent voice messages
+  useEffect(() => {
+    let channel
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.user) return
+      const userId = session.user.id
+      channel = supabase
+        .channel('child-messages-' + userId)
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'parent_messages',
+          filter: `user_id=eq.${userId}`,
+        }, async (payload) => {
+          // Fetch full row (audio_data too large for realtime payload)
+          const msg = await fetchMessageById(payload.new.id).catch(() => null)
+          if (msg) setParentMessage(msg)
+        })
+        .subscribe()
+    })
+    return () => { channel?.unsubscribe() }
+  }, [])
+
+  // Auto-play parent message when it arrives
+  useEffect(() => {
+    if (!parentMessage) return
+    speech.stopSpeaking()
+    speech.stopListening()
+    const audio = new Audio(`data:${parentMessage.mime_type};base64,${parentMessage.audio_data}`)
+    parentAudioRef.current = audio
+    const cleanup = () => {
+      markPlayed(parentMessage.id).catch(() => {})
+      setParentMessage(null)
+      parentAudioRef.current = null
+    }
+    audio.onended = cleanup
+    audio.onerror = cleanup
+    audio.play().catch(() => {}) // keep overlay visible for manual play if blocked
+  }, [parentMessage]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const dismissParentMessage = () => {
+    parentAudioRef.current?.pause()
+    parentAudioRef.current = null
+    if (parentMessage) markPlayed(parentMessage.id).catch(() => {})
+    setParentMessage(null)
+  }
 
   // Boot greeting
   useEffect(() => {
@@ -134,6 +185,28 @@ export default function ChildPage() {
           onClick={() => setShowPin(false)}
           aria-label="Cancel"
         />
+      )}
+
+      {/* Parent voice message overlay */}
+      {parentMessage && (
+        <div className={styles.msgOverlay}>
+          <div className={styles.msgBubble}>
+            <div className={styles.msgIcon}>🐻</div>
+            <p className={styles.msgTitle}>Message from your parent!</p>
+            <button
+              className={styles.msgPlayBtn}
+              onClick={() => parentAudioRef.current?.play()}
+            >
+              ▶ Play again
+            </button>
+            <button
+              className={styles.msgDismissBtn}
+              onClick={dismissParentMessage}
+            >
+              Got it!
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )

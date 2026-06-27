@@ -1,13 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PrintSheet from '../components/PrintSheet.jsx'
 import { getSettings, saveSettings } from '../utils/storage.js'
 import { testConnection } from '../services/openrouter.js'
 import { fetchHistory, deleteHistory } from '../services/historyService.js'
+import { sendVoiceMessage, fetchMessages } from '../services/messageService.js'
 import { supabase } from '../lib/supabase.js'
 import styles from './ParentPage.module.css'
 
-const TABS = ['Settings', 'Routines', 'History', 'Print']
+const TABS = ['Settings', 'Routines', 'Messages', 'History', 'Print']
 
 export default function ParentPage() {
   const navigate = useNavigate()
@@ -20,6 +21,11 @@ export default function ParentPage() {
   const [printData, setPrintData] = useState(null)
   const [printType, setPrintType] = useState('story')
   const [voices, setVoices] = useState([])
+  const [recStatus, setRecStatus] = useState('idle') // idle | recording | sending | sent | error
+  const [sentMessages, setSentMessages] = useState([])
+  const [msgsLoading, setMsgsLoading] = useState(false)
+  const mediaRecorderRef = useRef(null)
+  const chunksRef = useRef([])
 
   useEffect(() => {
     const load = () => {
@@ -30,6 +36,13 @@ export default function ParentPage() {
     window.speechSynthesis?.addEventListener('voiceschanged', load)
     return () => window.speechSynthesis?.removeEventListener('voiceschanged', load)
   }, [])
+
+  // Load sent messages when Messages tab opens
+  useEffect(() => {
+    if (tab !== 'Messages') return
+    setMsgsLoading(true)
+    fetchMessages().then(setSentMessages).catch(console.error).finally(() => setMsgsLoading(false))
+  }, [tab])
 
   // Load history from Supabase when History tab opens
   useEffect(() => {
@@ -64,6 +77,44 @@ export default function ParentPage() {
       setTestError(err.message || 'Unknown error')
       setTestStatus('fail')
       setTimeout(() => setTestStatus(null), 6000)
+    }
+  }
+
+  const startRecording = async () => {
+    if (recStatus === 'recording' || recStatus === 'sending') return
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      chunksRef.current = []
+      const mr = new MediaRecorder(stream)
+      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data) }
+      mr.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop())
+        const blob = new Blob(chunksRef.current, { type: mr.mimeType || 'audio/webm' })
+        if (blob.size < 500) { setRecStatus('idle'); return }
+        setRecStatus('sending')
+        try {
+          await sendVoiceMessage(blob)
+          setRecStatus('sent')
+          fetchMessages().then(setSentMessages).catch(console.error)
+          setTimeout(() => setRecStatus('idle'), 2000)
+        } catch {
+          setRecStatus('error')
+          setTimeout(() => setRecStatus('idle'), 2000)
+        }
+      }
+      mediaRecorderRef.current = mr
+      mr.start()
+      setRecStatus('recording')
+    } catch {
+      setRecStatus('error')
+      setTimeout(() => setRecStatus('idle'), 2000)
+    }
+  }
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current?.state === 'recording') {
+      mediaRecorderRef.current.stop()
+      mediaRecorderRef.current = null
     }
   }
 
@@ -266,6 +317,58 @@ export default function ParentPage() {
               steps={settings.bedtimeRoutine}
               onChange={(steps) => updateSetting('bedtimeRoutine', steps)}
             />
+          </div>
+        )}
+
+        {/* ---- MESSAGES ---- */}
+        {tab === 'Messages' && (
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Send Voice Message to Dubz</h2>
+            <p className={styles.hint} style={{ marginBottom: 20 }}>
+              Hold the button and speak. Release when done — Dubz will hear it right away!
+            </p>
+
+            <div className={styles.recordArea}>
+              <button
+                className={`${styles.recordBtn} ${recStatus === 'recording' ? styles.recording : ''}`}
+                onPointerDown={startRecording}
+                onPointerUp={stopRecording}
+                onPointerLeave={stopRecording}
+                disabled={recStatus === 'sending'}
+              >
+                {recStatus === 'sent' ? '✓' : recStatus === 'error' ? '✗' : '🎤'}
+              </button>
+              <p className={styles.recLabel}>
+                {recStatus === 'recording' ? 'Recording... release to send'
+                  : recStatus === 'sending' ? 'Sending to Dubz...'
+                  : recStatus === 'sent'    ? 'Message sent!'
+                  : recStatus === 'error'   ? 'Something went wrong, try again'
+                  : 'Hold to record'}
+              </p>
+            </div>
+
+            <h2 className={styles.sectionTitle} style={{ marginTop: 24 }}>Sent Messages</h2>
+            {msgsLoading ? (
+              <p className={styles.empty}>Loading...</p>
+            ) : sentMessages.length === 0 ? (
+              <p className={styles.empty}>No messages sent yet.</p>
+            ) : (
+              <div className={styles.historyList}>
+                {sentMessages.map((msg) => (
+                  <div key={msg.id} className={styles.historyEntry}>
+                    <div className={styles.entryMeta}>
+                      <span className={`${styles.modeBadge} ${msg.played ? styles.chat : styles.story}`}>
+                        {msg.played ? 'played' : 'unplayed'}
+                      </span>
+                      <span className={styles.entryDate}>
+                        {new Date(msg.created_at).toLocaleDateString()}{' '}
+                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
