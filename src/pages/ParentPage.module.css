@@ -470,6 +470,57 @@
   color: rgba(255,255,255,0.7);
 }
 
+/* Camera */
+.cameraBox {
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: #000;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255,255,255,0.1);
+}
+
+.cameraVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* mirror front-facing camera */
+}
+
+.cameraPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 4rem;
+  color: rgba(255,255,255,0.2);
+  padding: 20px;
+  text-align: center;
+}
+
+.camMsg {
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.5);
+  animation: camWait 1.4s ease infinite alternate;
+}
+
+@keyframes camWait {
+  from { opacity: 0.4; }
+  to   { opacity: 1; }
+}
+
+.camErr {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fca5a5;
+  line-height: 1.4;
+}
+
 /* Messages / Recording */
 .recordArea {
   display: flex;

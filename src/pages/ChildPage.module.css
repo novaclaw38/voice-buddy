@@ -103,6 +103,19 @@
   margin-bottom: 4px;
 }
 
+.cameraIndicator {
+  font-size: 1rem;
+  opacity: 0.85;
+  animation: camBlink 2.5s ease infinite;
+  margin-right: auto;
+  margin-left: 8px;
+}
+
+@keyframes camBlink {
+  0%, 100% { opacity: 0.9; }
+  50%       { opacity: 0.3; }
+}
+
 .pinDismiss {
   position: fixed;
   inset: 0;

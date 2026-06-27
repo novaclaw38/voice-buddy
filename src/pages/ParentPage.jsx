@@ -8,7 +8,14 @@ import { sendVoiceMessage, fetchMessages } from '../services/messageService.js'
 import { supabase } from '../lib/supabase.js'
 import styles from './ParentPage.module.css'
 
-const TABS = ['Settings', 'Routines', 'Messages', 'History', 'Print']
+const TABS = ['Settings', 'Routines', 'Messages', 'Camera', 'History', 'Print']
+
+const ICE_SERVERS = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+  ],
+}
 
 export default function ParentPage() {
   const navigate = useNavigate()
@@ -26,6 +33,11 @@ export default function ParentPage() {
   const [msgsLoading, setMsgsLoading] = useState(false)
   const mediaRecorderRef = useRef(null)
   const chunksRef = useRef([])
+  const camVideoRef   = useRef(null)
+  const camPcRef      = useRef(null)
+  const camChannelRef = useRef(null)
+  const [camStatus, setCamStatus] = useState('idle') // idle | requesting | streaming | error
+  const [camError,  setCamError]  = useState(null)
 
   useEffect(() => {
     const load = () => {
@@ -78,6 +90,74 @@ export default function ParentPage() {
       setTestStatus('fail')
       setTimeout(() => setTestStatus(null), 6000)
     }
+  }
+
+  const stopCamera = () => {
+    camChannelRef.current?.send({ type: 'broadcast', event: 'signal', payload: { type: 'stop' } })
+    camPcRef.current?.close()
+    camChannelRef.current?.unsubscribe()
+    camPcRef.current      = null
+    camChannelRef.current = null
+    if (camVideoRef.current) camVideoRef.current.srcObject = null
+    setCamStatus('idle')
+    setCamError(null)
+  }
+
+  const startCamera = async () => {
+    if (camStatus !== 'idle' && camStatus !== 'error') return
+    setCamStatus('requesting')
+    setCamError(null)
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setCamStatus('idle'); return }
+
+    const pc = new RTCPeerConnection(ICE_SERVERS)
+    camPcRef.current = pc
+
+    pc.ontrack = (e) => {
+      if (camVideoRef.current) {
+        camVideoRef.current.srcObject = e.streams[0]
+        camVideoRef.current.play().catch(() => {})
+      }
+      setCamStatus('streaming')
+    }
+
+    pc.oniceconnectionstatechange = () => {
+      const s = pc.iceConnectionState
+      if (s === 'failed' || s === 'disconnected' || s === 'closed') {
+        setCamStatus('error')
+        setCamError('Connection lost. Make sure the app is open on the kids device.')
+      }
+    }
+
+    pc.onicecandidate = (e) => {
+      if (e.candidate) {
+        camChannelRef.current?.send({ type: 'broadcast', event: 'signal',
+          payload: { type: 'ice-parent', candidate: e.candidate.toJSON() } })
+      }
+    }
+
+    const channel = supabase.channel('camera-' + user.id)
+    camChannelRef.current = channel
+
+    channel.on('broadcast', { event: 'signal' }, async ({ payload }) => {
+      if (payload.type === 'offer') {
+        await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp))
+        const answer = await pc.createAnswer()
+        await pc.setLocalDescription(answer)
+        channel.send({ type: 'broadcast', event: 'signal',
+          payload: { type: 'answer', sdp: { type: answer.type, sdp: answer.sdp } } })
+      }
+      if (payload.type === 'ice-child') {
+        try { await pc.addIceCandidate(new RTCIceCandidate(payload.candidate)) }
+        catch (_) {}
+      }
+    }).subscribe(() => {
+      // Small delay to let child's subscription settle, then request stream
+      setTimeout(() => {
+        channel.send({ type: 'broadcast', event: 'signal', payload: { type: 'request' } })
+      }, 600)
+    })
   }
 
   const startRecording = async () => {
@@ -369,6 +449,50 @@ export default function ParentPage() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* ---- CAMERA ---- */}
+        {tab === 'Camera' && (
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Live Camera</h2>
+            <p className={styles.hint} style={{ marginBottom: 16 }}>
+              Opens the camera on the kids device so you can check in remotely.
+              The app must be open on their screen.
+            </p>
+
+            <div className={styles.cameraBox}>
+              <video
+                ref={camVideoRef}
+                className={styles.cameraVideo}
+                autoPlay
+                playsInline
+                style={{ display: camStatus === 'streaming' ? 'block' : 'none' }}
+              />
+              {camStatus !== 'streaming' && (
+                <div className={styles.cameraPlaceholder}>
+                  {camStatus === 'idle'       && <span>📷</span>}
+                  {camStatus === 'requesting' && <p className={styles.camMsg}>Connecting to device...</p>}
+                  {camStatus === 'error'      && <p className={styles.camErr}>{camError}</p>}
+                </div>
+              )}
+            </div>
+
+            <div className={styles.btnRow} style={{ marginTop: 16 }}>
+              {(camStatus === 'idle' || camStatus === 'error') ? (
+                <button className={styles.btnSave} onClick={startCamera}>
+                  📹 Start Camera
+                </button>
+              ) : (
+                <button className={styles.btnDanger} onClick={stopCamera}>
+                  Stop Camera
+                </button>
+              )}
+            </div>
+
+            <p className={styles.hint} style={{ marginTop: 12 }}>
+              A 📹 icon will appear on the kids screen while the camera is active.
+            </p>
           </div>
         )}
 

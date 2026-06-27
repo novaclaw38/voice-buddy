@@ -27,6 +27,81 @@ export default function ChildPage() {
 
   const childName = settings.childName || 'there'
 
+  // Camera streaming — listen for parent requests
+  const cameraStreamRef = useRef(null)
+  const cameraPcRef    = useRef(null)
+  const cameraChRef    = useRef(null)
+  const [cameraOn, setCameraOn] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.user || !mounted) return
+      const userId = session.user.id
+      const channel = supabase.channel('camera-' + userId)
+      cameraChRef.current = channel
+
+      channel.on('broadcast', { event: 'signal' }, async ({ payload }) => {
+        if (payload.type === 'request') {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            cameraStreamRef.current = stream
+            if (mounted) setCameraOn(true)
+
+            const pc = new RTCPeerConnection({
+              iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+              ],
+            })
+            cameraPcRef.current = pc
+            stream.getTracks().forEach((t) => pc.addTrack(t, stream))
+
+            pc.onicecandidate = (e) => {
+              if (e.candidate) {
+                channel.send({ type: 'broadcast', event: 'signal',
+                  payload: { type: 'ice-child', candidate: e.candidate.toJSON() } })
+              }
+            }
+
+            const offer = await pc.createOffer()
+            await pc.setLocalDescription(offer)
+            channel.send({ type: 'broadcast', event: 'signal',
+              payload: { type: 'offer', sdp: { type: offer.type, sdp: offer.sdp } } })
+          } catch (err) {
+            console.warn('Camera start error:', err)
+          }
+        }
+
+        if (payload.type === 'answer' && cameraPcRef.current?.signalingState === 'have-local-offer') {
+          await cameraPcRef.current.setRemoteDescription(
+            new RTCSessionDescription(payload.sdp)
+          )
+        }
+
+        if (payload.type === 'ice-parent' && cameraPcRef.current) {
+          try { await cameraPcRef.current.addIceCandidate(new RTCIceCandidate(payload.candidate)) }
+          catch (_) {}
+        }
+
+        if (payload.type === 'stop') {
+          cameraStreamRef.current?.getTracks().forEach((t) => t.stop())
+          cameraPcRef.current?.close()
+          cameraStreamRef.current = null
+          cameraPcRef.current    = null
+          if (mounted) setCameraOn(false)
+        }
+      }).subscribe()
+    })
+
+    return () => {
+      mounted = false
+      cameraStreamRef.current?.getTracks().forEach((t) => t.stop())
+      cameraPcRef.current?.close()
+      cameraChRef.current?.unsubscribe()
+    }
+  }, [])
+
   // Realtime: listen for parent voice messages
   useEffect(() => {
     let channel
@@ -130,6 +205,7 @@ export default function ChildPage() {
         <span className={styles.modeLabel}>
           {chat.mode !== 'chat' ? `${chat.mode} mode` : `Hi, ${childName}!`}
         </span>
+        {cameraOn && <span className={styles.cameraIndicator} title="Camera on">📹</span>}
         <button
           className={styles.settingsBtn}
           onClick={() => setShowPin(true)}
