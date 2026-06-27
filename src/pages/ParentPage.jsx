@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PrintSheet from '../components/PrintSheet.jsx'
-import { getSettings, saveSettings, getHistory, clearHistory } from '../utils/storage.js'
+import { getSettings, saveSettings } from '../utils/storage.js'
 import { testConnection } from '../services/openrouter.js'
+import { fetchHistory, deleteHistory } from '../services/historyService.js'
+import { supabase } from '../lib/supabase.js'
 import styles from './ParentPage.module.css'
 
 const TABS = ['Settings', 'Routines', 'History', 'Print']
@@ -11,9 +13,10 @@ export default function ParentPage() {
   const navigate = useNavigate()
   const [tab, setTab] = useState('Settings')
   const [settings, setSettings] = useState(() => getSettings())
-  const [testStatus, setTestStatus] = useState(null) // null | 'testing' | 'ok' | 'fail'
+  const [testStatus, setTestStatus] = useState(null)
   const [testError, setTestError] = useState('')
-  const [history, setHistory] = useState(() => getHistory())
+  const [history, setHistory] = useState([])
+  const [historyLoading, setHistoryLoading] = useState(false)
   const [printData, setPrintData] = useState(null)
   const [printType, setPrintType] = useState('story')
   const [voices, setVoices] = useState([])
@@ -27,6 +30,20 @@ export default function ParentPage() {
     window.speechSynthesis?.addEventListener('voiceschanged', load)
     return () => window.speechSynthesis?.removeEventListener('voiceschanged', load)
   }, [])
+
+  // Load history from Supabase when History tab opens
+  useEffect(() => {
+    if (tab !== 'History') return
+    setHistoryLoading(true)
+    fetchHistory().then((rows) => {
+      setHistory(rows.map((r) => ({
+        ts: r.ts,
+        mode: r.mode,
+        userText: r.user_text,
+        buddyText: r.buddy_text,
+      })))
+    }).catch(console.error).finally(() => setHistoryLoading(false))
+  }, [tab])
 
   const updateSetting = (key, value) => {
     setSettings((prev) => {
@@ -50,11 +67,15 @@ export default function ParentPage() {
     }
   }
 
-  const handleClearHistory = () => {
+  const handleClearHistory = async () => {
     if (window.confirm('Clear all chat history? This cannot be undone.')) {
-      clearHistory()
+      await deleteHistory()
       setHistory([])
     }
+  }
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
   }
 
   const handlePrint = () => {
@@ -75,6 +96,9 @@ export default function ParentPage() {
           ← Back to Dubz
         </button>
         <h1 className={styles.title}>Parent Dashboard</h1>
+        <button className={styles.btnDanger} style={{ flexShrink: 0 }} onClick={handleLogout}>
+          Log out
+        </button>
       </div>
 
       {/* Tabs */}
@@ -256,7 +280,9 @@ export default function ParentPage() {
                 </button>
               )}
             </div>
-            {history.length === 0 ? (
+            {historyLoading ? (
+              <p className={styles.empty}>Loading history...</p>
+            ) : history.length === 0 ? (
               <p className={styles.empty}>No conversations yet. Go talk to Dubz!</p>
             ) : (
               <div className={styles.historyList}>
