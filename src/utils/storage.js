@@ -6,12 +6,16 @@ const KEYS = {
 
 const DEFAULTS = {
   childName: 'Dubz',
+  buddyName: 'Buddy',
+  avatarType: 'bear',
   parentPin: '1234',
   provider: 'groq',
   voiceName: '',
   speechRate: 0.9,
   speechPitch: 1.1,
+  voiceOnly: false,
   autoListen: false,
+  wakeWordEnabled: false,
   robotVoice: false,
   avatarColor: '#7c3aed',
   morningRoutine: [

@@ -1,7 +1,7 @@
 .container {
   position: relative;
-  width: 160px;
-  height: 160px;
+  width: 180px;
+  height: 180px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -10,21 +10,27 @@
 
 .glow {
   position: absolute;
-  width: 140px;
-  height: 140px;
+  width: 160px;
+  height: 160px;
   border-radius: 50%;
-  filter: blur(24px);
-  opacity: 0.38;
+  filter: blur(32px);
+  opacity: 0.5;
   transition: background 0.5s ease;
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { transform: scale(1);    opacity: 0.45; }
+  50%       { transform: scale(1.15); opacity: 0.65; }
 }
 
 .face {
   position: relative;
   z-index: 1;
-  width: 150px;
-  height: 150px;
+  width: 170px;
+  height: 170px;
   transition: all 0.3s ease;
-  filter: drop-shadow(0 4px 18px rgba(0,0,0,0.3));
+  filter: drop-shadow(0 6px 22px rgba(0,0,0,0.35));
 }
 
 /* ── State body animations ── */
@@ -84,6 +90,56 @@
 @keyframes earBlink {
   from { opacity: 0.2; r: 4; }
   to   { opacity: 0.6; r: 7; }
+}
+
+/* ── Per-type ear/feature animations ── */
+.earTwitch {
+  animation: earTwitch 0.4s ease-in-out infinite alternate;
+  transform-box: fill-box; transform-origin: bottom center;
+}
+@keyframes earTwitch {
+  from { transform: rotate(-5deg); }
+  to   { transform: rotate(5deg); }
+}
+
+.dogEarWag  { animation: dogWagL 0.5s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: top center; }
+.dogEarWagR { animation: dogWagR 0.5s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: top center; }
+@keyframes dogWagL { from { transform: rotate(0deg); } to { transform: rotate(10deg); } }
+@keyframes dogWagR { from { transform: rotate(0deg); } to { transform: rotate(-10deg); } }
+
+.bunnyEarL { animation: bunnyWigL 0.5s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: bottom center; }
+.bunnyEarR { animation: bunnyWigR 0.5s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: bottom center; }
+@keyframes bunnyWigL { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+@keyframes bunnyWigR { from { transform: rotate(5deg); } to { transform: rotate(-5deg); } }
+
+.antennaPulse {
+  animation: antennaBlink 0.5s ease-in-out infinite alternate;
+}
+@keyframes antennaBlink {
+  from { fill: #86efac; r: 5; }
+  to   { fill: #ffffff; r: 7; }
+}
+
+.spikeGlow {
+  animation: spikeFlash 0.6s ease-in-out infinite alternate;
+}
+@keyframes spikeFlash {
+  from { fill: rgba(255,255,255,0.1); }
+  to   { fill: rgba(255,255,255,0.35); }
+}
+
+/* ── Speaking sparkles ── */
+.spark1 { animation: sparkle 0.7s ease-in-out 0s    infinite; transform-box: fill-box; transform-origin: center; }
+.spark2 { animation: sparkle 0.7s ease-in-out 0.15s infinite; transform-box: fill-box; transform-origin: center; }
+.spark3 { animation: sparkle 0.7s ease-in-out 0.3s  infinite; transform-box: fill-box; transform-origin: center; }
+.spark4 { animation: sparkle 0.7s ease-in-out 0.45s infinite; transform-box: fill-box; transform-origin: center; }
+.spark5 { animation: sparkle 0.8s ease-in-out 0.1s  infinite; transform-box: fill-box; transform-origin: center; }
+.spark6 { animation: sparkle 0.8s ease-in-out 0.35s infinite; transform-box: fill-box; transform-origin: center; }
+.spark7 { animation: sparkle 0.9s ease-in-out 0.55s infinite; transform-box: fill-box; transform-origin: center; }
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0;   transform: scale(0.4) rotate(0deg); }
+  50%       { opacity: 1;  transform: scale(1.3) rotate(30deg); }
 }
 
 /* ── Thinking dots ── */

@@ -1,11 +1,31 @@
 import styles from './SpeechBubble.module.css'
 
-export default function SpeechBubble({ buddyText, userText, status }) {
+export default function SpeechBubble({ buddyText, userText, status, storyMode, wordIndex }) {
   const showThinking = status === 'thinking'
+  const showWordTracker = storyMode && wordIndex >= 0 && buddyText && !showThinking
+
+  const renderText = () => {
+    if (showThinking) {
+      return <div className={styles.dots}><span /><span /><span /></div>
+    }
+    if (showWordTracker) {
+      const words = buddyText.trim().split(/\s+/)
+      return (
+        <p className={`${styles.buddyText} ${styles.storyText}`}>
+          {words.map((word, i) => (
+            <span key={i} className={`${styles.word} ${i === wordIndex ? styles.activeWord : ''}`}>
+              {i === wordIndex && <span className={styles.dot} aria-hidden="true">●</span>}
+              {word}{' '}
+            </span>
+          ))}
+        </p>
+      )
+    }
+    return <p className={styles.buddyText}>{buddyText || ' '}</p>
+  }
 
   return (
     <div className={styles.wrapper}>
-      {/* User transcript */}
       {userText && (
         <div className={styles.userBubble}>
           <span className={styles.userLabel}>You said:</span>
@@ -13,16 +33,8 @@ export default function SpeechBubble({ buddyText, userText, status }) {
         </div>
       )}
 
-      {/* Buddy response */}
-      <div className={`${styles.buddyBubble} ${buddyText ? styles.visible : ''}`}>
-        {showThinking ? (
-          <div className={styles.dots}>
-            <span /><span /><span />
-          </div>
-        ) : (
-          <p className={styles.buddyText}>{buddyText || ' '}</p>
-        )}
-        {/* Bubble tail */}
+      <div className={`${styles.buddyBubble} ${buddyText ? styles.visible : ''} ${showWordTracker ? styles.storyBubble : ''}`}>
+        {renderText()}
         <div className={styles.tail} />
       </div>
     </div>

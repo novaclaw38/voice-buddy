@@ -59,7 +59,7 @@ export default function AuthPage() {
           </svg>
         </div>
 
-        <h1 className={styles.title}>Dubz</h1>
+        <h1 className={styles.title}>Buddy</h1>
         <p className={styles.subtitle}>Your child's AI buddy</p>
 
         <div className={styles.modeTabs}>

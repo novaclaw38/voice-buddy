@@ -84,6 +84,43 @@
   white-space: nowrap;
 }
 
+/* Story mode word tracker */
+.storyBubble {
+  padding-top: 2em;
+}
+
+.storyText {
+  line-height: 2;
+  text-align: left;
+}
+
+.word {
+  position: relative;
+  display: inline-block;
+  transition: color 0.1s;
+}
+
+.activeWord {
+  color: #fde68a;
+}
+
+.dot {
+  position: absolute;
+  top: -1.4em;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.65em;
+  color: #fbbf24;
+  line-height: 1;
+  pointer-events: none;
+  animation: readDot 0.35s ease-in-out infinite alternate;
+}
+
+@keyframes readDot {
+  from { transform: translateX(-50%) translateY(0px); opacity: 0.8; }
+  to   { transform: translateX(-50%) translateY(-6px); opacity: 1; }
+}
+
 /* Thinking dots */
 .dots {
   display: flex;

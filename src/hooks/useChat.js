@@ -15,14 +15,20 @@ export function useChat(settings) {
   const sessionRef = useRef({ ts: Date.now() })
 
   const buildSystemPrompt = useCallback((currentMode) => {
-    const name = settings?.childName || 'there'
+    const childName  = settings?.childName  || 'there'
+    const buddyName  = settings?.buddyName  || 'Buddy'
     switch (currentMode) {
-      case 'story':    return PROMPTS.story(name)
-      case 'game':     return PROMPTS.game(name)
-      case 'activity': return PROMPTS.activity(name)
-      case 'routine':
-        return PROMPTS.routine(name, settings?.morningRoutine || [])
-      default:         return PROMPTS.chat(name)
+      case 'story':    return PROMPTS.story(childName, buddyName)
+      case 'game':     return PROMPTS.game(childName, buddyName)
+      case 'activity': return PROMPTS.activity(childName, buddyName)
+      case 'routine':  return PROMPTS.routine(childName, buddyName, settings?.morningRoutine || [])
+      case 'quiz':     return PROMPTS.quiz(childName, buddyName)
+      case 'jokes':    return PROMPTS.jokes(childName, buddyName)
+      case 'sing':     return PROMPTS.sing(childName, buddyName)
+      case 'feelings': return PROMPTS.feelings(childName, buddyName)
+      case 'move':     return PROMPTS.move(childName, buddyName)
+      case 'learn':    return PROMPTS.learn(childName, buddyName)
+      default:         return PROMPTS.chat(childName, buddyName)
     }
   }, [settings])
 
@@ -35,9 +41,10 @@ export function useChat(settings) {
     setError(null)
     sessionRef.current = { ts: Date.now() }
 
-    const name = settings?.childName || 'there'
-    return MODE_INTROS[newMode]?.(name) || "Let's play!"
-  }, [settings?.childName])
+    const childName = settings?.childName || 'there'
+    const buddyName = settings?.buddyName  || 'Buddy'
+    return MODE_INTROS[newMode]?.(childName, buddyName) || "Let's play!"
+  }, [settings?.childName, settings?.buddyName])
 
   const sendMessage = useCallback(async (userText, currentMode) => {
     setError(null)

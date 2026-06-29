@@ -3,26 +3,76 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: linear-gradient(160deg, #4c1d95 0%, #1e3a8a 100%);
   overflow: hidden;
   position: relative;
   padding-bottom: env(safe-area-inset-bottom);
+  transition: background 0.8s ease;
 }
 
-/* Starfield background */
+/* Rich twinkling starfield */
 .page::before {
   content: '';
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.4) 0%, transparent 100%),
-    radial-gradient(1px 1px at 60% 15%, rgba(255,255,255,0.3) 0%, transparent 100%),
-    radial-gradient(1px 1px at 80% 60%, rgba(255,255,255,0.35) 0%, transparent 100%),
-    radial-gradient(1px 1px at 40% 70%, rgba(255,255,255,0.25) 0%, transparent 100%),
-    radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
-    radial-gradient(1px 1px at 90% 20%, rgba(255,255,255,0.2) 0%, transparent 100%);
+    radial-gradient(2px 2px at 10% 12%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 28% 8%,  rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(2px 2px at 55% 5%,  rgba(255,255,255,0.55) 0%, transparent 100%),
+    radial-gradient(1px 1px at 74% 14%, rgba(255,255,255,0.35) 0%, transparent 100%),
+    radial-gradient(2px 2px at 90% 9%,  rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 18% 35%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(2px 2px at 40% 28%, rgba(255,255,255,0.45) 0%, transparent 100%),
+    radial-gradient(1px 1px at 68% 32%, rgba(255,255,255,0.35) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 42%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(2px 2px at 5%  60%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 30% 68%, rgba(255,255,255,0.25) 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 72%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(2px 2px at 92% 65%, rgba(255,255,255,0.45) 0%, transparent 100%),
+    radial-gradient(1px 1px at 15% 88%, rgba(255,255,255,0.35) 0%, transparent 100%),
+    radial-gradient(2px 2px at 78% 90%, rgba(255,255,255,0.4) 0%, transparent 100%);
   pointer-events: none;
+  animation: twinkle 4s ease-in-out infinite alternate;
 }
+
+@keyframes twinkle {
+  0%   { opacity: 0.6; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+/* ── Floating decorations ──────────────────────────────── */
+.deco {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.deco span {
+  position: absolute;
+  color: rgba(255,255,255,0.22);
+  font-size: 1.1rem;
+  animation: floatDrift 10s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+@keyframes floatDrift {
+  0%   { transform: translateY(0) rotate(0deg);   opacity: 0.15; }
+  50%  { opacity: 0.4; }
+  100% { transform: translateY(-30px) rotate(20deg); opacity: 0.18; }
+}
+
+.d1  { left:  6%; top: 18%; font-size: 1.4rem; animation-duration: 9s;  animation-delay: 0s;   }
+.d2  { left: 88%; top: 10%; font-size: 0.9rem; animation-duration: 11s; animation-delay: 1s;   }
+.d3  { left: 20%; top: 75%; font-size: 1.2rem; animation-duration: 8s;  animation-delay: 2s;   }
+.d4  { left: 72%; top: 82%; font-size: 1rem;   animation-duration: 12s; animation-delay: 0.5s; }
+.d5  { left: 50%; top:  8%; font-size: 0.8rem; animation-duration: 10s; animation-delay: 3s;   }
+.d6  { left: 80%; top: 50%; font-size: 1.3rem; animation-duration: 7s;  animation-delay: 1.5s; }
+.d7  { left:  3%; top: 45%; font-size: 0.9rem; animation-duration: 13s; animation-delay: 2.5s; }
+.d8  { left: 38%; top: 90%; font-size: 1.1rem; animation-duration: 9s;  animation-delay: 4s;   }
+.d9  { left: 93%; top: 30%; font-size: 0.8rem; animation-duration: 11s; animation-delay: 0.8s; }
+.d10 { left: 60%; top: 60%; font-size: 1rem;   animation-duration: 8s;  animation-delay: 3.5s; }
 
 .topBar {
   display: flex;
@@ -32,6 +82,7 @@
   padding: 12px 16px 4px;
   flex-shrink: 0;
   z-index: 10;
+  position: relative;
 }
 
 .modeLabel {
@@ -39,6 +90,20 @@
   font-weight: 700;
   color: rgba(255,255,255,0.7);
   text-transform: capitalize;
+}
+
+.customizeBtn {
+  font-size: 1.3rem;
+  padding: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  line-height: 1;
+  transition: background 0.15s, transform 0.15s;
+}
+
+.customizeBtn:active {
+  background: rgba(255,255,255,0.2);
+  transform: rotate(15deg) scale(1.1);
 }
 
 .settingsBtn {
@@ -56,11 +121,21 @@
 
 .avatarArea {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  padding: 8px 0 4px;
+  padding: 4px 0 0;
   z-index: 1;
+}
+
+.buddyNameTag {
+  font-size: 1rem;
+  font-weight: 800;
+  color: rgba(255,255,255,0.75);
+  text-shadow: 0 1px 6px rgba(0,0,0,0.4);
+  letter-spacing: 0.05em;
+  margin-top: -6px;
 }
 
 .bubbleArea {
@@ -103,9 +178,214 @@
   margin-bottom: 4px;
 }
 
+.wakeHint {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.55);
+  text-align: center;
+  margin-top: 6px;
+  animation: wakeHintPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes wakeHintPulse {
+  0%, 100% { opacity: 0.45; }
+  50%       { opacity: 0.9; }
+}
+
+.cameraIndicator {
+  font-size: 1rem;
+  opacity: 0.85;
+  animation: camBlink 2.5s ease infinite;
+  margin-right: auto;
+  margin-left: 8px;
+}
+
+@keyframes camBlink {
+  0%, 100% { opacity: 0.9; }
+  50%       { opacity: 0.3; }
+}
+
 .pinDismiss {
   position: fixed;
   inset: 0;
   z-index: 99;
   background: transparent;
+}
+
+/* Parent voice message overlay */
+.msgOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.72);
+  backdrop-filter: blur(6px);
+  animation: msgFadeIn 0.25s ease;
+}
+
+@keyframes msgFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.msgBubble {
+  background: linear-gradient(135deg, #4c1d95 0%, #1e3a8a 100%);
+  border: 2px solid rgba(167,139,250,0.45);
+  border-radius: 28px;
+  padding: 36px 28px 28px;
+  text-align: center;
+  max-width: 300px;
+  width: 90%;
+  animation: msgScaleIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes msgScaleIn {
+  from { transform: scale(0.75); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+.msgIcon {
+  font-size: 4rem;
+  margin-bottom: 10px;
+  display: block;
+  animation: msgBounce 0.7s ease infinite alternate;
+}
+
+@keyframes msgBounce {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-10px); }
+}
+
+.msgTitle {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 24px;
+  line-height: 1.3;
+}
+
+.msgPlayBtn {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  background: #7c3aed;
+  border-radius: 16px;
+  color: white;
+  font-weight: 800;
+  font-size: 1.1rem;
+  font-family: inherit;
+  margin-bottom: 10px;
+  transition: transform 0.1s;
+}
+
+.msgPlayBtn:active { transform: scale(0.95); }
+
+.msgDismissBtn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 14px;
+  color: rgba(255,255,255,0.75);
+  font-weight: 700;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.msgDismissBtn:active { background: rgba(255,255,255,0.18); }
+
+/* ── Voice-only mode ───────────────────────────────────── */
+.voicePage {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: #0a0a12;
+  position: relative;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.voiceSettingsBtn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  font-size: 1.4rem;
+  padding: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  line-height: 1;
+  z-index: 10;
+}
+
+.voiceOrb {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  transition: background 0.4s ease, box-shadow 0.4s ease;
+}
+
+.orb_idle {
+  background: radial-gradient(circle at 40% 35%, #6d28d9, #1e1b4b);
+  box-shadow: 0 0 40px 10px rgba(109,40,217,0.4);
+  animation: orbPulseIdle 3s ease-in-out infinite;
+}
+
+.orb_listening {
+  background: radial-gradient(circle at 40% 35%, #16a34a, #14532d);
+  box-shadow: 0 0 60px 20px rgba(22,163,74,0.5);
+  animation: orbPulseListen 0.8s ease-in-out infinite alternate;
+}
+
+.orb_thinking {
+  background: radial-gradient(circle at 40% 35%, #ca8a04, #78350f);
+  box-shadow: 0 0 50px 15px rgba(202,138,4,0.45);
+  animation: orbSpin 1.5s linear infinite;
+}
+
+.orb_speaking {
+  background: radial-gradient(circle at 40% 35%, #0891b2, #0c4a6e);
+  box-shadow: 0 0 60px 20px rgba(8,145,178,0.5);
+  animation: orbPulseSpeak 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes orbPulseIdle {
+  0%, 100% { transform: scale(1);    opacity: 0.85; }
+  50%       { transform: scale(1.05); opacity: 1; }
+}
+
+@keyframes orbPulseListen {
+  from { transform: scale(1);    box-shadow: 0 0 60px 20px rgba(22,163,74,0.5); }
+  to   { transform: scale(1.1);  box-shadow: 0 0 80px 28px rgba(22,163,74,0.7); }
+}
+
+@keyframes orbSpin {
+  0%   { transform: scale(1)    rotate(0deg); }
+  50%  { transform: scale(1.06) rotate(180deg); }
+  100% { transform: scale(1)    rotate(360deg); }
+}
+
+@keyframes orbPulseSpeak {
+  from { transform: scale(1);    box-shadow: 0 0 60px 20px rgba(8,145,178,0.5); }
+  to   { transform: scale(1.08); box-shadow: 0 0 80px 30px rgba(8,145,178,0.65); }
+}
+
+.voiceBuddyText {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  text-align: center;
+  max-width: 80%;
+  line-height: 1.4;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+}
+
+.voiceUserText {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.5);
+  text-align: center;
+  max-width: 80%;
 }

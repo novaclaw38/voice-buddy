@@ -1,13 +1,21 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PrintSheet from '../components/PrintSheet.jsx'
 import { getSettings, saveSettings } from '../utils/storage.js'
 import { testConnection } from '../services/openrouter.js'
 import { fetchHistory, deleteHistory } from '../services/historyService.js'
+import { sendVoiceMessage, fetchMessages } from '../services/messageService.js'
 import { supabase } from '../lib/supabase.js'
 import styles from './ParentPage.module.css'
 
-const TABS = ['Settings', 'Routines', 'History', 'Print']
+const TABS = ['Settings', 'Routines', 'Messages', 'Camera', 'History', 'Print']
+
+const ICE_SERVERS = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+  ],
+}
 
 export default function ParentPage() {
   const navigate = useNavigate()
@@ -20,6 +28,16 @@ export default function ParentPage() {
   const [printData, setPrintData] = useState(null)
   const [printType, setPrintType] = useState('story')
   const [voices, setVoices] = useState([])
+  const [recStatus, setRecStatus] = useState('idle') // idle | recording | sending | sent | error
+  const [sentMessages, setSentMessages] = useState([])
+  const [msgsLoading, setMsgsLoading] = useState(false)
+  const mediaRecorderRef = useRef(null)
+  const chunksRef = useRef([])
+  const camVideoRef   = useRef(null)
+  const camPcRef      = useRef(null)
+  const camChannelRef = useRef(null)
+  const [camStatus, setCamStatus] = useState('idle') // idle | requesting | streaming | error
+  const [camError,  setCamError]  = useState(null)
 
   useEffect(() => {
     const load = () => {
@@ -30,6 +48,13 @@ export default function ParentPage() {
     window.speechSynthesis?.addEventListener('voiceschanged', load)
     return () => window.speechSynthesis?.removeEventListener('voiceschanged', load)
   }, [])
+
+  // Load sent messages when Messages tab opens
+  useEffect(() => {
+    if (tab !== 'Messages') return
+    setMsgsLoading(true)
+    fetchMessages().then(setSentMessages).catch(console.error).finally(() => setMsgsLoading(false))
+  }, [tab])
 
   // Load history from Supabase when History tab opens
   useEffect(() => {
@@ -64,6 +89,112 @@ export default function ParentPage() {
       setTestError(err.message || 'Unknown error')
       setTestStatus('fail')
       setTimeout(() => setTestStatus(null), 6000)
+    }
+  }
+
+  const stopCamera = () => {
+    camChannelRef.current?.send({ type: 'broadcast', event: 'signal', payload: { type: 'stop' } })
+    camPcRef.current?.close()
+    camChannelRef.current?.unsubscribe()
+    camPcRef.current      = null
+    camChannelRef.current = null
+    if (camVideoRef.current) camVideoRef.current.srcObject = null
+    setCamStatus('idle')
+    setCamError(null)
+  }
+
+  const startCamera = async () => {
+    if (camStatus !== 'idle' && camStatus !== 'error') return
+    setCamStatus('requesting')
+    setCamError(null)
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setCamStatus('idle'); return }
+
+    const pc = new RTCPeerConnection(ICE_SERVERS)
+    camPcRef.current = pc
+
+    pc.ontrack = (e) => {
+      if (camVideoRef.current) {
+        camVideoRef.current.srcObject = e.streams[0]
+        camVideoRef.current.play().catch(() => {})
+      }
+      setCamStatus('streaming')
+    }
+
+    pc.oniceconnectionstatechange = () => {
+      const s = pc.iceConnectionState
+      if (s === 'failed' || s === 'disconnected' || s === 'closed') {
+        setCamStatus('error')
+        setCamError('Connection lost. Make sure the app is open on the kids device.')
+      }
+    }
+
+    pc.onicecandidate = (e) => {
+      if (e.candidate) {
+        camChannelRef.current?.send({ type: 'broadcast', event: 'signal',
+          payload: { type: 'ice-parent', candidate: e.candidate.toJSON() } })
+      }
+    }
+
+    const channel = supabase.channel('camera-' + user.id)
+    camChannelRef.current = channel
+
+    channel.on('broadcast', { event: 'signal' }, async ({ payload }) => {
+      if (payload.type === 'offer') {
+        await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp))
+        const answer = await pc.createAnswer()
+        await pc.setLocalDescription(answer)
+        channel.send({ type: 'broadcast', event: 'signal',
+          payload: { type: 'answer', sdp: { type: answer.type, sdp: answer.sdp } } })
+      }
+      if (payload.type === 'ice-child') {
+        try { await pc.addIceCandidate(new RTCIceCandidate(payload.candidate)) }
+        catch (_) {}
+      }
+    }).subscribe(() => {
+      // Small delay to let child's subscription settle, then request stream
+      setTimeout(() => {
+        channel.send({ type: 'broadcast', event: 'signal', payload: { type: 'request' } })
+      }, 600)
+    })
+  }
+
+  const startRecording = async () => {
+    if (recStatus === 'recording' || recStatus === 'sending') return
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      chunksRef.current = []
+      const mr = new MediaRecorder(stream)
+      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data) }
+      mr.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop())
+        const blob = new Blob(chunksRef.current, { type: mr.mimeType || 'audio/webm' })
+        if (blob.size < 500) { setRecStatus('idle'); return }
+        setRecStatus('sending')
+        try {
+          await sendVoiceMessage(blob)
+          setRecStatus('sent')
+          fetchMessages().then(setSentMessages).catch(console.error)
+          setTimeout(() => setRecStatus('idle'), 2000)
+        } catch {
+          setRecStatus('error')
+          setTimeout(() => setRecStatus('idle'), 2000)
+        }
+      }
+      mediaRecorderRef.current = mr
+      mr.start()
+      setRecStatus('recording')
+    } catch {
+      setRecStatus('error')
+      setTimeout(() => setRecStatus('idle'), 2000)
+    }
+  }
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current?.state === 'recording') {
+      mediaRecorderRef.current.stop()
+      mediaRecorderRef.current = null
     }
   }
 
@@ -189,6 +320,41 @@ export default function ParentPage() {
             </div>
 
             <div className={styles.field}>
+              <label className={styles.label}>Wake word</label>
+              <div className={styles.toggle}>
+                <input
+                  type="checkbox"
+                  id="wakeWordEnabled"
+                  checked={settings.wakeWordEnabled || false}
+                  onChange={(e) => updateSetting('wakeWordEnabled', e.target.checked)}
+                />
+                <label htmlFor="wakeWordEnabled" className={styles.toggleLabel}>
+                  {settings.wakeWordEnabled ? '🎙️ On — say "Hey Buddy" to start' : 'Off (tap mic to talk)'}
+                </label>
+              </div>
+              <p className={styles.hint}>
+                When on, {settings.childName || 'your child'} can say "Hey {settings.buddyName || 'Buddy'}" to start talking — no tap needed.
+                Works best in a quiet room. Requires microphone permission to stay active.
+              </p>
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.label}>Screen-time saver (voice only)</label>
+              <div className={styles.toggle}>
+                <input
+                  type="checkbox"
+                  id="voiceOnly"
+                  checked={settings.voiceOnly || false}
+                  onChange={(e) => updateSetting('voiceOnly', e.target.checked)}
+                />
+                <label htmlFor="voiceOnly" className={styles.toggleLabel}>
+                  {settings.voiceOnly ? '🎙️ Voice only (screen off)' : '📱 Full screen (default)'}
+                </label>
+              </div>
+              <p className={styles.hint}>Turn on to hide all visuals — just a glowing orb. Great for bedtime or reducing screen time.</p>
+            </div>
+
+            <div className={styles.field}>
               <label className={styles.label}>Dubz's Voice</label>
               <div className={styles.toggle}>
                 <input
@@ -266,6 +432,102 @@ export default function ParentPage() {
               steps={settings.bedtimeRoutine}
               onChange={(steps) => updateSetting('bedtimeRoutine', steps)}
             />
+          </div>
+        )}
+
+        {/* ---- MESSAGES ---- */}
+        {tab === 'Messages' && (
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Send Voice Message to Dubz</h2>
+            <p className={styles.hint} style={{ marginBottom: 20 }}>
+              Hold the button and speak. Release when done — Dubz will hear it right away!
+            </p>
+
+            <div className={styles.recordArea}>
+              <button
+                className={`${styles.recordBtn} ${recStatus === 'recording' ? styles.recording : ''}`}
+                onPointerDown={startRecording}
+                onPointerUp={stopRecording}
+                onPointerLeave={stopRecording}
+                disabled={recStatus === 'sending'}
+              >
+                {recStatus === 'sent' ? '✓' : recStatus === 'error' ? '✗' : '🎤'}
+              </button>
+              <p className={styles.recLabel}>
+                {recStatus === 'recording' ? 'Recording... release to send'
+                  : recStatus === 'sending' ? 'Sending to Dubz...'
+                  : recStatus === 'sent'    ? 'Message sent!'
+                  : recStatus === 'error'   ? 'Something went wrong, try again'
+                  : 'Hold to record'}
+              </p>
+            </div>
+
+            <h2 className={styles.sectionTitle} style={{ marginTop: 24 }}>Sent Messages</h2>
+            {msgsLoading ? (
+              <p className={styles.empty}>Loading...</p>
+            ) : sentMessages.length === 0 ? (
+              <p className={styles.empty}>No messages sent yet.</p>
+            ) : (
+              <div className={styles.historyList}>
+                {sentMessages.map((msg) => (
+                  <div key={msg.id} className={styles.historyEntry}>
+                    <div className={styles.entryMeta}>
+                      <span className={`${styles.modeBadge} ${msg.played ? styles.chat : styles.story}`}>
+                        {msg.played ? 'played' : 'unplayed'}
+                      </span>
+                      <span className={styles.entryDate}>
+                        {new Date(msg.created_at).toLocaleDateString()}{' '}
+                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ---- CAMERA ---- */}
+        {tab === 'Camera' && (
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Live Camera</h2>
+            <p className={styles.hint} style={{ marginBottom: 16 }}>
+              Opens the camera on the kids device so you can check in remotely.
+              The app must be open on their screen.
+            </p>
+
+            <div className={styles.cameraBox}>
+              <video
+                ref={camVideoRef}
+                className={styles.cameraVideo}
+                autoPlay
+                playsInline
+                style={{ display: camStatus === 'streaming' ? 'block' : 'none' }}
+              />
+              {camStatus !== 'streaming' && (
+                <div className={styles.cameraPlaceholder}>
+                  {camStatus === 'idle'       && <span>📷</span>}
+                  {camStatus === 'requesting' && <p className={styles.camMsg}>Connecting to device...</p>}
+                  {camStatus === 'error'      && <p className={styles.camErr}>{camError}</p>}
+                </div>
+              )}
+            </div>
+
+            <div className={styles.btnRow} style={{ marginTop: 16 }}>
+              {(camStatus === 'idle' || camStatus === 'error') ? (
+                <button className={styles.btnSave} onClick={startCamera}>
+                  📹 Start Camera
+                </button>
+              ) : (
+                <button className={styles.btnDanger} onClick={stopCamera}>
+                  Stop Camera
+                </button>
+              )}
+            </div>
+
+            <p className={styles.hint} style={{ marginTop: 12 }}>
+              A 📹 icon will appear on the kids screen while the camera is active.
+            </p>
           </div>
         )}
 

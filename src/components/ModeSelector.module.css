@@ -1,45 +1,72 @@
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+.row {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 4px 16px 8px;
   width: 100%;
-  max-width: 340px;
-  padding: 0 4px;
 }
+
+.row::-webkit-scrollbar { display: none; }
 
 .tile {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   border-radius: 20px;
-  padding: 18px 12px;
-  border: 2px solid transparent;
-  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  padding: 12px 8px;
+  min-width: 76px;
+  flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.15);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.15);
   -webkit-user-select: none;
   user-select: none;
+  animation: tilePop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  will-change: transform;
+  transition: box-shadow 0.2s ease;
+}
+
+@keyframes tilePop {
+  from { transform: scale(0.6) translateY(18px); opacity: 0; }
+  to   { transform: scale(1)   translateY(0);    opacity: 1; }
 }
 
 .tile:active {
-  transform: scale(0.93);
+  transform: scale(0.91) !important;
+}
+
+.tile:hover:not(:active) {
+  box-shadow: 0 6px 22px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
 .active {
-  border-color: rgba(255, 255, 255, 0.8);
-  box-shadow: 0 0 0 3px var(--glow, white), 0 4px 16px rgba(0,0,0,0.3);
-  transform: scale(1.03);
+  border-color: rgba(255,255,255,0.85);
+  box-shadow: 0 0 0 3px var(--glow, white), 0 4px 14px rgba(0,0,0,0.3);
+  transform: scale(1.07);
+  animation: none !important;
 }
 
 .emoji {
-  font-size: 2.2rem;
+  font-size: 2rem;
   line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+  animation: emojiWiggle 3s ease-in-out infinite;
+}
+
+@keyframes emojiWiggle {
+  0%, 90%, 100% { transform: rotate(0deg) scale(1); }
+  93%            { transform: rotate(-8deg) scale(1.1); }
+  97%            { transform: rotate(8deg) scale(1.1); }
 }
 
 .label {
-  font-size: 1rem;
+  font-size: 0.72rem;
   font-weight: 800;
   color: white;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }

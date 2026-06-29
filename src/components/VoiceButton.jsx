@@ -1,6 +1,6 @@
 import styles from './VoiceButton.module.css'
 
-export default function VoiceButton({ status, onPress, onRelease, tapMode = true }) {
+export default function VoiceButton({ status, onPress, onRelease, tapMode = true, buddyName = 'Buddy' }) {
   const isListening = status === 'listening'
   const isSpeaking = status === 'speaking'
   const isThinking = status === 'thinking'
@@ -32,7 +32,7 @@ export default function VoiceButton({ status, onPress, onRelease, tapMode = true
         onPointerDown={handlePress}
         onPointerUp={handleRelease}
         disabled={disabled}
-        aria-label={isListening ? 'Tap to stop listening' : 'Tap to talk to Buddy'}
+        aria-label={isListening ? 'Tap to stop listening' : `Tap to talk to ${buddyName}`}
       >
         {isListening ? (
           /* Mic active (waveform) */
@@ -64,7 +64,7 @@ export default function VoiceButton({ status, onPress, onRelease, tapMode = true
       </button>
 
       <p className={styles.label}>
-        {isListening ? 'Listening...' : isSpeaking ? 'Dubz is talking...' : isThinking ? 'Thinking...' : 'Tap to talk!'}
+        {isListening ? 'Listening... 👂' : isSpeaking ? `${buddyName} is talking... 💬` : isThinking ? 'Thinking... ✨' : 'Tap to talk! 🎤'}
       </p>
     </div>
   )
