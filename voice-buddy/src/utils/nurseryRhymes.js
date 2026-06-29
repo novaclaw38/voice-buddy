@@ -1,3 +1,4 @@
+// 12 classic nursery rhymes for sing-along mode
 export const NURSERY_RHYMES = [
   {
     id: 'twinkle',
