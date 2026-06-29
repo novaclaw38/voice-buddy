@@ -1,23 +1,53 @@
-/* ---- CSS Variables ---- */
+/* ---- Squishy design system ---- */
 :root {
-  --buddy-purple: #7c3aed;
+  /* Candy palette */
+  --c-grape: #7c3aed;
+  --c-grape-d: #5b21b6;
+  --c-pink: #ff6ba9;
+  --c-pink-d: #e0408a;
+  --c-tangerine: #ff9a3c;
+  --c-mint: #3ddc97;
+  --c-sky: #4dadf7;
+  --c-sunny: #ffd23f;
+  --c-berry: #c026d3;
+
+  /* Legacy aliases (kept so any un-migrated rule still resolves) */
+  --buddy-purple: var(--c-grape);
   --buddy-purple-light: #a855f7;
-  --buddy-blue: #2563eb;
-  --buddy-blue-light: #60a5fa;
-  --buddy-green: #16a34a;
-  --buddy-green-light: #4ade80;
-  --buddy-yellow: #d97706;
-  --buddy-yellow-light: #fcd34d;
-  --buddy-pink: #db2777;
-  --buddy-orange: #ea580c;
-  --buddy-red: #dc2626;
-  --bg-gradient: linear-gradient(160deg, #4c1d95 0%, #1e3a8a 100%);
-  --card-bg: rgba(255, 255, 255, 0.12);
-  --card-border: rgba(255, 255, 255, 0.2);
-  --text-main: #ffffff;
-  --text-dim: rgba(255, 255, 255, 0.75);
-  --radius: 20px;
-  --font-main: 'Nunito', 'Comic Neue', cursive, sans-serif;
+  --buddy-blue: var(--c-sky);
+  --buddy-pink: var(--c-pink);
+  --buddy-orange: var(--c-tangerine);
+  --buddy-green: var(--c-mint);
+  --buddy-yellow: var(--c-sunny);
+  --buddy-red: #ef476f;
+
+  /* Ink on light surfaces */
+  --ink: #3a2a5d;
+  --ink-dim: #8478a0;
+  --surface: #ffffff;
+
+  --bg-gradient: linear-gradient(165deg, #fff1fa 0%, #eaf4ff 55%, #f3ecff 100%);
+  --card-bg: #ffffff;
+  --card-border: rgba(124, 58, 237, 0.12);
+  --text-main: #3a2a5d;
+  --text-dim: #8478a0;
+
+  /* Fat radii */
+  --r-sm: 16px;
+  --r-md: 24px;
+  --r-lg: 34px;
+  --r-pill: 999px;
+  --radius: 28px;
+
+  /* Soft, chunky candy shadows */
+  --shadow-squish: 0 8px 0 rgba(91, 33, 182, 0.12), 0 16px 30px rgba(80, 40, 120, 0.16);
+  --shadow-pop: 0 10px 26px rgba(124, 58, 237, 0.34);
+  --shadow-card: 0 14px 34px rgba(124, 58, 237, 0.14);
+
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --font-head: 'Fredoka', 'Nunito', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+  --font-main: var(--font-body);
 }
 
 /* ---- Reset ---- */
@@ -43,13 +73,24 @@ html, body {
   flex-direction: column;
 }
 
+h1, h2, h3 {
+  font-family: var(--font-head);
+  letter-spacing: -0.01em;
+}
+
 button {
   cursor: pointer;
   border: none;
   background: none;
-  font-family: inherit;
+  font-family: var(--font-head);
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  transition: transform 0.12s var(--spring), box-shadow 0.12s ease, filter 0.12s ease;
+}
+
+/* Everything squishes when pressed */
+button:active {
+  transform: scale(0.93);
 }
 
 input, select, textarea {
@@ -91,6 +132,29 @@ input, select, textarea {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50%      { transform: translateY(-14px) rotate(1deg); }
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.06); }
+}
+
+@keyframes pop-in {
+  0%   { transform: scale(0) rotate(-12deg); opacity: 0; }
+  60%  { transform: scale(1.18) rotate(4deg); }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+@keyframes jelly {
+  0%, 100% { transform: scale(1, 1); }
+  30%      { transform: scale(1.12, 0.88); }
+  50%      { transform: scale(0.9, 1.1); }
+  70%      { transform: scale(1.04, 0.96); }
 }
 
 /* ---- Utility ---- */

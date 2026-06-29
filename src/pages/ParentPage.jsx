@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PrintSheet from '../components/PrintSheet.jsx'
 import { getSettings, saveSettings } from '../utils/storage.js'
-import { testConnection } from '../services/openrouter.js'
+import { testConnection } from '../services/chatService.js'
 import { fetchHistory, deleteHistory } from '../services/historyService.js'
 import { sendVoiceMessage, fetchMessages } from '../services/messageService.js'
 import { supabase } from '../lib/supabase.js'
@@ -137,7 +137,7 @@ export default function ParentPage() {
       }
     }
 
-    const channel = supabase.channel('camera-' + user.id)
+    const channel = supabase.channel('camera-' + user.id, { config: { private: true } })
     camChannelRef.current = channel
 
     channel.on('broadcast', { event: 'signal' }, async ({ payload }) => {
@@ -224,7 +224,7 @@ export default function ParentPage() {
       {/* Header */}
       <div className={styles.header}>
         <button className={styles.backBtn} onClick={() => navigate('/')}>
-          ← Back to Dubz
+          ← Back to Buddy
         </button>
         <h1 className={styles.title}>Parent Dashboard</h1>
         <button className={styles.btnDanger} style={{ flexShrink: 0 }} onClick={handleLogout}>
@@ -305,7 +305,7 @@ export default function ParentPage() {
             </div>
 
             <div className={styles.field}>
-              <label className={styles.label}>Auto-listen after Dubz speaks</label>
+              <label className={styles.label}>Auto-listen after Buddy speaks</label>
               <div className={styles.toggle}>
                 <input
                   type="checkbox"
@@ -355,7 +355,7 @@ export default function ParentPage() {
             </div>
 
             <div className={styles.field}>
-              <label className={styles.label}>Dubz's Voice</label>
+              <label className={styles.label}>Buddy's Voice</label>
               <div className={styles.toggle}>
                 <input
                   type="checkbox"
@@ -401,7 +401,7 @@ export default function ParentPage() {
 
             <div className={styles.field}>
               <p className={styles.hint} style={{ marginBottom: 10 }}>
-                Dubz uses Groq (free). The API key is set by the app — no key entry needed here.
+                Buddy uses Groq (free). The API key is set by the app — no key entry needed here.
                 To use your own key: add <strong>GROQ_API_KEY</strong> to your Vercel project's
                 Environment Variables at <strong>vercel.com → Project → Settings → Environment Variables</strong>.
               </p>
@@ -438,9 +438,9 @@ export default function ParentPage() {
         {/* ---- MESSAGES ---- */}
         {tab === 'Messages' && (
           <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Send Voice Message to Dubz</h2>
+            <h2 className={styles.sectionTitle}>Send Voice Message to Buddy</h2>
             <p className={styles.hint} style={{ marginBottom: 20 }}>
-              Hold the button and speak. Release when done — Dubz will hear it right away!
+              Hold the button and speak. Release when done — Buddy will hear it right away!
             </p>
 
             <div className={styles.recordArea}>
@@ -455,7 +455,7 @@ export default function ParentPage() {
               </button>
               <p className={styles.recLabel}>
                 {recStatus === 'recording' ? 'Recording... release to send'
-                  : recStatus === 'sending' ? 'Sending to Dubz...'
+                  : recStatus === 'sending' ? 'Sending to Buddy...'
                   : recStatus === 'sent'    ? 'Message sent!'
                   : recStatus === 'error'   ? 'Something went wrong, try again'
                   : 'Hold to record'}
@@ -545,7 +545,7 @@ export default function ParentPage() {
             {historyLoading ? (
               <p className={styles.empty}>Loading history...</p>
             ) : history.length === 0 ? (
-              <p className={styles.empty}>No conversations yet. Go talk to Dubz!</p>
+              <p className={styles.empty}>No conversations yet. Go talk to Buddy!</p>
             ) : (
               <div className={styles.historyList}>
                 {history.map((entry, i) => (
@@ -559,7 +559,7 @@ export default function ParentPage() {
                       </span>
                     </div>
                     <p className={styles.entryUser}><strong>Child:</strong> {entry.userText}</p>
-                    <p className={styles.entryBuddy}><strong>Dubz:</strong> {entry.buddyText}</p>
+                    <p className={styles.entryBuddy}><strong>Buddy:</strong> {entry.buddyText}</p>
                     <button
                       className={styles.btnSmall}
                       onClick={() => handleSelectPrint(entry)}

@@ -1,15 +1,12 @@
 const KEYS = {
   SETTINGS: 'buddy_settings',
-  HISTORY: 'buddy_history',
-  API_KEY: 'buddy_api_key',
 }
 
 const DEFAULTS = {
-  childName: 'Dubz',
+  childName: '',
   buddyName: 'Buddy',
   avatarType: 'bear',
   parentPin: '1234',
-  provider: 'groq',
   voiceName: '',
   speechRate: 0.9,
   speechPitch: 1.1,
@@ -47,34 +44,4 @@ export function getSettings() {
 
 export function saveSettings(settings) {
   localStorage.setItem(KEYS.SETTINGS, JSON.stringify(settings))
-}
-
-export function getApiKey() {
-  const envKey = import.meta.env.VITE_OPENROUTER_KEY
-  if (envKey && envKey.length > 10) return envKey
-  return localStorage.getItem(KEYS.API_KEY) || ''
-}
-
-export function saveApiKey(key) {
-  localStorage.setItem(KEYS.API_KEY, key)
-}
-
-export function getHistory() {
-  try {
-    const raw = localStorage.getItem(KEYS.HISTORY)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
-  }
-}
-
-export function appendHistory(entry) {
-  const history = getHistory()
-  history.unshift(entry)
-  const trimmed = history.slice(0, 50)
-  localStorage.setItem(KEYS.HISTORY, JSON.stringify(trimmed))
-}
-
-export function clearHistory() {
-  localStorage.removeItem(KEYS.HISTORY)
 }

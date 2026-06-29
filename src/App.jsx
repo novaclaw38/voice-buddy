@@ -1,12 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { supabase } from './lib/supabase.js'
 import { SubscriptionProvider } from './hooks/useSubscription.jsx'
-import ChildPage from './pages/ChildPage.jsx'
-import ParentPage from './pages/ParentPage.jsx'
-import AuthPage from './pages/AuthPage.jsx'
-import LandingPage from './pages/LandingPage.jsx'
-import CoursesPage from './pages/CoursesPage.jsx'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
+
+const ChildPage   = lazy(() => import('./pages/ChildPage.jsx'))
+const ParentPage  = lazy(() => import('./pages/ParentPage.jsx'))
+const AuthPage    = lazy(() => import('./pages/AuthPage.jsx'))
+const LandingPage = lazy(() => import('./pages/LandingPage.jsx'))
+const CoursesPage = lazy(() => import('./pages/CoursesPage.jsx'))
+
+const Loader = () => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#030712' }}>
+    <div style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'sans-serif' }}>Loading…</div>
+  </div>
+)
 
 export default function App() {
   const [session, setSession] = useState(undefined) // undefined = loading
@@ -26,16 +34,14 @@ export default function App() {
   }, [])
 
   if (session === undefined) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#030712' }}>
-        <div style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'sans-serif' }}>Loading…</div>
-      </div>
-    )
+    return <Loader />
   }
 
   return (
     <BrowserRouter>
       <SubscriptionProvider userId={session?.user?.id}>
+        <ErrorBoundary>
+        <Suspense fallback={<Loader />}>
         <Routes>
           {/* Public */}
           <Route path="/"      element={session ? <Navigate to="/app" replace /> : <LandingPage />} />
@@ -49,6 +55,8 @@ export default function App() {
           {/* Catch-all */}
           <Route path="*" element={<Navigate to={session ? '/app' : '/'} replace />} />
         </Routes>
+        </Suspense>
+        </ErrorBoundary>
       </SubscriptionProvider>
     </BrowserRouter>
   )

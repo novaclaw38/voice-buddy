@@ -1,18 +1,17 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(58,42,93,0.6);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
 }
 
 .card {
-  background: linear-gradient(160deg, #4c1d95, #1e3a8a);
-  border: 2px solid rgba(255,255,255,0.2);
-  border-radius: 28px;
+  background: #fff;
+  border-radius: var(--r-lg);
   padding: 32px 28px;
   width: 100%;
   max-width: 320px;
@@ -20,22 +19,24 @@
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  box-shadow: var(--shadow-card);
 }
 
 .lock {
-  font-size: 2.5rem;
+  font-size: 2.6rem;
 }
 
 .title {
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: white;
+  font-family: var(--font-head);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ink);
 }
 
 .sub {
   font-size: 0.95rem;
-  color: rgba(255,255,255,0.65);
+  font-weight: 700;
+  color: var(--ink-dim);
 }
 
 .dots {
@@ -48,14 +49,13 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.3);
-  border: 2px solid rgba(255,255,255,0.5);
-  transition: background 0.15s;
+  background: #ece4fb;
+  transition: all 0.15s var(--spring);
 }
 
 .filled {
-  background: #a855f7;
-  border-color: #a855f7;
+  background: var(--c-grape);
+  transform: scale(1.2);
 }
 
 .keypad {
@@ -67,25 +67,27 @@
 }
 
 .key {
-  background: rgba(255,255,255,0.12);
-  border: 2px solid rgba(255,255,255,0.15);
-  border-radius: 14px;
+  background: #f4f0fc;
+  border-radius: var(--r-sm);
   padding: 16px;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: white;
-  font-family: inherit;
-  transition: background 0.1s, transform 0.1s;
+  font-family: var(--font-head);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--ink);
+  box-shadow: 0 4px 0 #e3d8f7;
 }
 
-.key:active {
-  background: rgba(255,255,255,0.25);
-  transform: scale(0.93);
+.key:active:not(:disabled) {
+  background: #e9e0fb;
+  transform: translateY(3px) scale(0.96);
+  box-shadow: 0 1px 0 #e3d8f7;
 }
+
+.key:disabled { opacity: 0.5; }
 
 .key.empty {
   background: transparent;
-  border-color: transparent;
+  box-shadow: none;
   cursor: default;
 }
 

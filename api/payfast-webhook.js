@@ -32,13 +32,41 @@ export default async function handler(req, res) {
     return res.status(400).end()
   }
 
+  // Confirm the notification really came from PayFast (recommended server postback).
+  const sandbox = process.env.PAYFAST_SANDBOX !== 'false'
+  const pfHost  = sandbox ? 'sandbox.payfast.co.za' : 'www.payfast.co.za'
+  try {
+    const verify = await fetch(`https://${pfHost}/eng/query/validate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: paramString, // original fields, signature excluded
+    })
+    const verdict = (await verify.text()).trim()
+    if (verdict !== 'VALID') {
+      console.warn('PayFast ITN: postback not VALID:', verdict)
+      return res.status(400).end()
+    }
+  } catch (err) {
+    console.error('PayFast ITN: postback failed', err)
+    return res.status(500).end()
+  }
+
   const userId        = body.m_payment_id
   const status        = body.payment_status
   const token         = body.token || null
+  const amount        = parseFloat(body.amount_gross || '0')
 
   if (!userId) return res.status(400).end()
 
-  if (status === 'COMPLETE') {
+  // Only amounts we actually request: R0 trial setup, or the R149 recurring charge.
+  const ALLOWED_AMOUNTS = [0, 149]
+  if (!ALLOWED_AMOUNTS.some((a) => Math.abs(amount - a) < 0.01)) {
+    console.warn('PayFast ITN: unexpected amount_gross', amount)
+    return res.status(400).end()
+  }
+
+  if (status === 'COMPLETE' && amount >= 149) {
+    // A real paid charge → grant/extend a month of Pro.
     const subscriptionEnd = new Date()
     subscriptionEnd.setDate(subscriptionEnd.getDate() + 30)
 
@@ -48,6 +76,14 @@ export default async function handler(req, res) {
       subscription_end: subscriptionEnd.toISOString(),
       payfast_token:    token,
       updated_at:       new Date().toISOString(),
+    }, { onConflict: 'user_id' })
+
+  } else if (status === 'COMPLETE') {
+    // R0 trial setup — just record the recurring token; the trial row already exists.
+    await db.from('subscriptions').upsert({
+      user_id:       userId,
+      payfast_token: token,
+      updated_at:    new Date().toISOString(),
     }, { onConflict: 'user_id' })
 
   } else if (status === 'CANCELLED' || status === 'FAILED') {

@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react'
-import { chatCompletion } from '../services/openrouter.js'
+import { chatCompletion } from '../services/chatService.js'
 import { addHistory } from '../services/historyService.js'
 import { PROMPTS, MODE_INTROS } from '../utils/prompts.js'
 
@@ -61,7 +61,7 @@ export function useChat(settings) {
       const recent = updatedMsgs.slice(-MAX_HISTORY)
       const contextMsgs = [system, ...recent]
 
-      const reply = await chatCompletion(contextMsgs)
+      const reply = await chatCompletion(contextMsgs, { mode: currentM })
 
       const assistantMsg = { role: 'assistant', content: reply }
       const finalMsgs = [...messagesRef.current, assistantMsg]

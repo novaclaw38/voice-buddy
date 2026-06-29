@@ -16,18 +16,17 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  border-radius: 20px;
-  padding: 12px 8px;
-  min-width: 76px;
+  gap: 6px;
+  border-radius: 26px;
+  padding: 14px 10px 12px;
+  min-width: 82px;
   flex-shrink: 0;
-  border: 2px solid rgba(255,255,255,0.15);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.15);
+  box-shadow: 0 6px 0 rgba(0,0,0,0.18), 0 12px 20px rgba(40,20,60,0.18), inset 0 2px 0 rgba(255,255,255,0.4);
   -webkit-user-select: none;
   user-select: none;
-  animation: tilePop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: tilePop 0.45s var(--spring) both;
   will-change: transform;
-  transition: box-shadow 0.2s ease;
+  transition: box-shadow 0.15s ease, transform 0.15s var(--spring);
 }
 
 @keyframes tilePop {
@@ -36,17 +35,13 @@
 }
 
 .tile:active {
-  transform: scale(0.91) !important;
-}
-
-.tile:hover:not(:active) {
-  box-shadow: 0 6px 22px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+  transform: translateY(4px) scale(0.94) !important;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.18), 0 6px 12px rgba(40,20,60,0.18), inset 0 2px 0 rgba(255,255,255,0.4);
 }
 
 .active {
-  border-color: rgba(255,255,255,0.85);
-  box-shadow: 0 0 0 3px var(--glow, white), 0 4px 14px rgba(0,0,0,0.3);
-  transform: scale(1.07);
+  box-shadow: 0 0 0 4px #fff, 0 0 0 7px var(--glow, #fff), 0 8px 18px rgba(40,20,60,0.25);
+  transform: scale(1.08) translateY(-2px);
   animation: none !important;
 }
 

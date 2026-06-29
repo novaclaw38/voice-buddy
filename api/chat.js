@@ -1,9 +1,22 @@
+import { getUser, isProMode, isEntitled } from './_auth.js'
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { messages, maxTokens = 300, temperature = 0.85 } = req.body
+  // Require a signed-in user — this endpoint spends paid Groq credits.
+  const user = await getUser(req)
+  if (!user) {
+    return res.status(401).json({ error: { message: 'Sign in to chat with Buddy.' } })
+  }
+
+  const { messages, maxTokens = 300, temperature = 0.85, mode } = req.body
+
+  // Enforce Pro gating server-side — the client cannot be trusted.
+  if (isProMode(mode) && !(await isEntitled(user.id))) {
+    return res.status(403).json({ error: { message: 'This mode is part of Buddy Pro.' } })
+  }
 
   const key = process.env.GROQ_API_KEY
   if (!key) {
@@ -17,6 +30,8 @@ export default async function handler(req, res) {
   ]
 
   for (let i = 0; i < MODELS.length; i++) {
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 20000)
     try {
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
@@ -30,6 +45,7 @@ export default async function handler(req, res) {
           max_tokens: maxTokens,
           temperature,
         }),
+        signal: ctrl.signal,
       })
 
       if (response.status === 429 && i < MODELS.length - 1) continue
@@ -45,6 +61,8 @@ export default async function handler(req, res) {
     } catch (err) {
       if (i < MODELS.length - 1) continue
       return res.status(500).json({ error: { message: err.message } })
+    } finally {
+      clearTimeout(timer)
     }
   }
 }

@@ -1,9 +1,22 @@
+import { supabase } from '../lib/supabase.js'
+
+// Attach the current Supabase access token so the API can authenticate the user.
+async function authHeaders() {
+  const { data } = await supabase.auth.getSession()
+  const token = data?.session?.access_token
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  }
+}
+
 export async function chatCompletion(messages, options = {}) {
   const response = await fetch('/api/chat', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await authHeaders(),
     body: JSON.stringify({
       messages,
+      mode: options.mode,
       maxTokens: options.maxTokens || 300,
       temperature: options.temperature || 0.85,
     }),
@@ -11,6 +24,7 @@ export async function chatCompletion(messages, options = {}) {
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}))
+    if (response.status === 429) throw new Error('RATE_LIMIT')
     throw new Error(err.error?.message || `HTTP ${response.status}`)
   }
 

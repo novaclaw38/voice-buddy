@@ -11,17 +11,16 @@
 
 .buddyBubble {
   position: relative;
-  background: rgba(255, 255, 255, 0.18);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 24px;
-  padding: 16px 20px;
-  max-width: 340px;
+  background: #fff;
+  border-radius: var(--r-lg);
+  padding: 20px 24px;
+  max-width: 360px;
   width: 100%;
-  min-height: 72px;
+  min-height: 76px;
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-card);
   transition: opacity 0.2s;
 }
 
@@ -41,17 +40,17 @@
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 12px solid transparent;
-  border-right: 12px solid transparent;
-  border-top: 14px solid rgba(255, 255, 255, 0.18);
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-top: 16px solid #fff;
 }
 
 .buddyText {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.5;
   text-align: center;
-  color: white;
+  color: var(--ink);
   word-break: break-word;
 }
 
@@ -59,25 +58,25 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 16px;
-  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.65);
+  border-radius: var(--r-pill);
+  padding: 7px 16px;
   max-width: 320px;
   width: 100%;
 }
 
 .userLabel {
   font-size: 0.75rem;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.6);
+  font-weight: 800;
+  color: var(--c-grape);
   white-space: nowrap;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .userText {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.92rem;
+  color: var(--ink-dim);
   font-style: italic;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -101,7 +100,8 @@
 }
 
 .activeWord {
-  color: #fde68a;
+  color: var(--c-berry);
+  font-weight: 800;
 }
 
 .dot {
@@ -110,7 +110,7 @@
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.65em;
-  color: #fbbf24;
+  color: var(--c-tangerine);
   line-height: 1;
   pointer-events: none;
   animation: readDot 0.35s ease-in-out infinite alternate;
@@ -129,9 +129,9 @@
 }
 
 .dots span {
-  width: 12px;
-  height: 12px;
-  background: rgba(255,255,255,0.7);
+  width: 13px;
+  height: 13px;
+  background: var(--c-grape);
   border-radius: 50%;
   animation: dotBounce 0.8s ease-in-out infinite;
 }

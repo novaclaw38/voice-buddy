@@ -61,7 +61,7 @@ export default function ChildPage({ session }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session?.user || !mounted) return
       const userId = session.user.id
-      const channel = supabase.channel('camera-' + userId)
+      const channel = supabase.channel('camera-' + userId, { config: { private: true } })
       cameraChRef.current = channel
 
       channel.on('broadcast', { event: 'signal' }, async ({ payload }) => {
@@ -153,7 +153,7 @@ export default function ChildPage({ session }) {
     if (!parentMessage) return
     speech.stopSpeaking()
     speech.stopListening()
-    const audio = new Audio(`data:${parentMessage.mime_type};base64,${parentMessage.audio_data}`)
+    const audio = new Audio(parentMessage.audioUrl)
     parentAudioRef.current = audio
     const cleanup = () => {
       markPlayed(parentMessage.id).catch(() => {})
@@ -309,17 +309,17 @@ export default function ChildPage({ session }) {
   const voiceOnly = settings.voiceOnly || false
 
   const modeColors = {
-    chat:     ['#4c1d95', '#1e3a8a'],
-    story:    ['#5b21b6', '#312e81'],
-    game:     ['#831843', '#1e1b4b'],
-    activity: ['#7c2d12', '#1e3a8a'],
-    routine:  ['#14532d', '#1e3a8a'],
-    quiz:     ['#0c4a6e', '#1e3a8a'],
-    jokes:    ['#78350f', '#1e3a8a'],
-    sing:     ['#831843', '#4c1d95'],
-    feelings: ['#1e3a8a', '#312e81'],
-    move:     ['#14532d', '#0c4a6e'],
-    learn:    ['#312e81', '#1e3a8a'],
+    chat:     ['#ff9ecf', '#a78bfa'],
+    story:    ['#b794f6', '#7cc4fb'],
+    game:     ['#ff8fc7', '#d56bf0'],
+    activity: ['#ffb15c', '#ffd76b'],
+    routine:  ['#6ee7b7', '#7cc4fb'],
+    quiz:     ['#7cc4fb', '#a78bfa'],
+    jokes:    ['#ffd76b', '#ffa94d'],
+    sing:     ['#ff8fc7', '#b794f6'],
+    feelings: ['#8ec5ff', '#b794f6'],
+    move:     ['#6ee7b7', '#ffd76b'],
+    learn:    ['#a78bfa', '#7cc4fb'],
   }
   const [from, to] = modeColors[chat.mode] || modeColors.chat
 

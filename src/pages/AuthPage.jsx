@@ -40,7 +40,7 @@ export default function AuthPage() {
     <div className={styles.page}>
       <button
         onClick={() => navigate('/')}
-        style={{ position: 'absolute', top: 20, left: 20, background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '14px' }}
+        style={{ position: 'absolute', top: 20, left: 20, background: '#fff', borderRadius: 999, padding: '8px 16px', border: 'none', color: '#7c3aed', fontWeight: 700, cursor: 'pointer', fontSize: '14px', boxShadow: '0 4px 0 rgba(91,33,182,0.14)' }}
       >
         ← Home
       </button>

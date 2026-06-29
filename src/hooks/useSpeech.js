@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { supabase } from '../lib/supabase.js'
 
 const SpeechRec =
   typeof window !== 'undefined'
@@ -95,11 +96,18 @@ export function useSpeech(settings) {
     const pitch  = settings?.robotVoice ? -8   : 0    // semitones for Google TTS
     const gender = settings?.robotVoice ? 'male' : 'female'
 
-    fetch('/api/tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, rate, pitch, gender }),
-    })
+    supabase.auth.getSession()
+      .then(({ data }) => {
+        const token = data?.session?.access_token
+        return fetch('/api/tts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ text, rate, pitch, gender }),
+        })
+      })
       .then((r) => {
         if (!r.ok) throw new Error('tts_api_error')
         return r.json()

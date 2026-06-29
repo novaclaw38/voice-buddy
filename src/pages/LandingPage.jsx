@@ -96,7 +96,7 @@ function PhoneMockup() {
           </div>
           <div className={styles.cameraOverlay}>
             <span className={styles.liveTag}>● LIVE</span>
-            <span className={styles.childTag}>Dubz 😊</span>
+            <span className={styles.childTag}>Sam 😊</span>
           </div>
         </div>
       </div>
@@ -349,15 +349,15 @@ export default function LandingPage() {
           <div className={styles.featureVisual}>
             <div className={styles.courseCards}>
               {[
-                { emoji: '🌱', title: 'Gardening for Kids', color: '#14532d' },
-                { emoji: '🤖', title: 'Robotics Basics', color: '#1e3a8a' },
-                { emoji: '🔬', title: 'Science Experiments', color: '#7c2d12' },
+                { emoji: '🌱', title: 'Gardening for Kids', color: ['#3ddc97', '#16a34a'] },
+                { emoji: '🤖', title: 'Robotics Basics', color: ['#4dadf7', '#2563eb'] },
+                { emoji: '🔬', title: 'Science Experiments', color: ['#ff9a3c', '#ec4899'] },
               ].map((c, i) => (
                 <div
                   key={i}
                   className={styles.courseCard}
                   style={{
-                    background: `linear-gradient(135deg, ${c.color}cc, ${c.color}44)`,
+                    background: `linear-gradient(135deg, ${c.color[0]}, ${c.color[1]})`,
                     animationDelay: `${i * 0.15}s`,
                   }}
                 >
