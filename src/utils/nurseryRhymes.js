@@ -1,9 +1,15 @@
-// 12 classic nursery rhymes for sing-along mode
+// Nursery rhymes for sing-along mode.
+// Each song has a REAL sung recording (audio) sourced from Wikimedia Commons,
+// converted to mp3 and self-hosted under /public/songs. `credit` carries the
+// attribution required by the file's licence (see the in-app credits screen).
 export const NURSERY_RHYMES = [
   {
     id: 'twinkle',
     title: 'Twinkle Twinkle Little Star',
     emoji: '⭐',
+    audio: '/songs/twinkle.mp3',
+    duration: 24.6,
+    credit: { author: 'CommandSpry', license: 'CC BY-SA 3.0', source: 'https://commons.wikimedia.org/wiki/File:Twinkle_twinkle_little_star_(vocal).ogg' },
     lines: [
       'Twinkle twinkle little star',
       'How I wonder what you are',
@@ -17,6 +23,9 @@ export const NURSERY_RHYMES = [
     id: 'baa-baa',
     title: 'Baa Baa Black Sheep',
     emoji: '🐑',
+    audio: '/songs/baa-baa.mp3',
+    duration: 24.0,
+    credit: { author: 'CambridgeBayWeather', license: 'CC BY-SA 3.0', source: 'https://commons.wikimedia.org/wiki/File:Baa,_Baa,_Blacksheep.ogg' },
     lines: [
       'Baa baa black sheep have you any wool',
       'Yes sir yes sir three bags full',
@@ -28,6 +37,9 @@ export const NURSERY_RHYMES = [
     id: 'old-macdonald',
     title: 'Old MacDonald Had a Farm',
     emoji: '🐄',
+    audio: '/songs/old-macdonald.mp3',
+    duration: 31.9,
+    credit: { author: 'CambridgeBayWeather', license: 'CC BY-SA 3.0', source: 'https://commons.wikimedia.org/wiki/File:Old_McDonald_Had_a_Farm.ogg' },
     lines: [
       'Old MacDonald had a farm E I E I O',
       'And on his farm he had a cow E I E I O',
@@ -37,24 +49,12 @@ export const NURSERY_RHYMES = [
     ],
   },
   {
-    id: 'wheels',
-    title: 'Wheels on the Bus',
-    emoji: '🚌',
-    lines: [
-      'The wheels on the bus go round and round',
-      'Round and round round and round',
-      'The wheels on the bus go round and round',
-      'All through the town',
-      'The doors on the bus go open and shut',
-      'Open and shut open and shut',
-      'The doors on the bus go open and shut',
-      'All through the town',
-    ],
-  },
-  {
     id: 'row-row',
     title: 'Row Row Row Your Boat',
     emoji: '🚣',
+    audio: '/songs/row-row.mp3',
+    duration: 7.9,
+    credit: { author: 'CambridgeBayWeather', license: 'CC BY-SA 3.0', source: 'https://commons.wikimedia.org/wiki/File:Row,_Row,_Row_Your_Boat.ogg' },
     lines: [
       'Row row row your boat',
       'Gently down the stream',
@@ -66,6 +66,9 @@ export const NURSERY_RHYMES = [
     id: 'itsy-bitsy',
     title: 'Itsy Bitsy Spider',
     emoji: '🕷️',
+    audio: '/songs/itsy-bitsy.mp3',
+    duration: 18.5,
+    credit: { author: 'Wwaters', license: 'CC BY-SA 3.0', source: 'https://commons.wikimedia.org/wiki/File:Itsy_Bitsy_Spider.ogg' },
     lines: [
       'The itsy bitsy spider went up the water spout',
       'Down came the rain and washed the spider out',
@@ -74,9 +77,26 @@ export const NURSERY_RHYMES = [
     ],
   },
   {
+    id: 'mary-lamb',
+    title: 'Mary Had a Little Lamb',
+    emoji: '🐏',
+    audio: '/songs/mary-lamb.mp3',
+    duration: 22.8,
+    credit: { author: 'Celestianpower', license: 'Public domain', source: 'https://commons.wikimedia.org/wiki/File:Mary_Had_a_Little_Lamb.ogg' },
+    lines: [
+      'Mary had a little lamb',
+      'Its fleece was white as snow',
+      'And everywhere that Mary went',
+      'The lamb was sure to go',
+    ],
+  },
+  {
     id: 'jack-and-jill',
     title: 'Jack and Jill',
     emoji: '⛰️',
+    audio: '/songs/jack-and-jill.mp3',
+    duration: 19.0,
+    credit: { author: 'Unknown (1890)', license: 'Public domain', source: 'https://commons.wikimedia.org/wiki/File:Jack_and_Jill_(1890).ogg' },
     lines: [
       'Jack and Jill went up the hill',
       'To fetch a pail of water',
@@ -85,57 +105,12 @@ export const NURSERY_RHYMES = [
     ],
   },
   {
-    id: 'humpty',
-    title: 'Humpty Dumpty',
-    emoji: '🥚',
-    lines: [
-      'Humpty Dumpty sat on a wall',
-      'Humpty Dumpty had a great fall',
-      'All the king\'s horses and all the king\'s men',
-      'Couldn\'t put Humpty together again',
-    ],
-  },
-  {
-    id: 'mary-lamb',
-    title: 'Mary Had a Little Lamb',
-    emoji: '🐏',
-    lines: [
-      'Mary had a little lamb',
-      'Its fleece was white as snow',
-      'And everywhere that Mary went',
-      'The lamb was sure to go',
-      'It followed her to school one day',
-      'Which was against the rule',
-      'It made the children laugh and play',
-      'To see a lamb at school',
-    ],
-  },
-  {
-    id: 'head-shoulders',
-    title: 'Head Shoulders Knees and Toes',
-    emoji: '🙆',
-    lines: [
-      'Head shoulders knees and toes knees and toes',
-      'Head shoulders knees and toes knees and toes',
-      'And eyes and ears and mouth and nose',
-      'Head shoulders knees and toes knees and toes',
-    ],
-  },
-  {
-    id: 'if-youre-happy',
-    title: "If You're Happy and You Know It",
-    emoji: '😄',
-    lines: [
-      "If you're happy and you know it clap your hands",
-      "If you're happy and you know it clap your hands",
-      "If you're happy and you know it and you really want to show it",
-      "If you're happy and you know it clap your hands",
-    ],
-  },
-  {
     id: 'abc',
     title: 'The Alphabet Song',
     emoji: '🔤',
+    audio: '/songs/abc.mp3',
+    duration: 23.9,
+    credit: { author: 'CambridgeBayWeather', license: 'CC BY-SA 3.0', source: 'https://commons.wikimedia.org/wiki/File:Alphabet_song.ogg' },
     lines: [
       'A B C D E F G',
       'H I J K L M N O P',

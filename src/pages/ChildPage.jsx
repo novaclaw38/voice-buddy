@@ -14,7 +14,6 @@ import { getSettings, saveSettings } from '../utils/storage.js'
 import { supabase } from '../lib/supabase.js'
 import { fetchMessageById, markPlayed } from '../services/messageService.js'
 import { COURSES } from '../utils/courses.js'
-import { pickTrack } from '../utils/music.js'
 import SingAlong from '../components/SingAlong.jsx'
 import styles from './ChildPage.module.css'
 
@@ -34,7 +33,6 @@ export default function ChildPage({ session }) {
   const [wordIndex, setWordIndex] = useState(-1)
   const [showUpgrade, setShowUpgrade] = useState(false)
   const rafRef = useRef(null)
-  const bgMusicRef = useRef(null)
   const [parentMessage, setParentMessage] = useState(null)
   const parentAudioRef = useRef(null)
   // Timer ref for clearing bubble text after speech ends
@@ -218,30 +216,8 @@ export default function ChildPage({ session }) {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Background music in sing mode
-  useEffect(() => {
-    if (chat.mode === 'sing') {
-      const audio = new Audio(pickTrack())
-      audio.loop   = true
-      audio.volume = 0.2
-      bgMusicRef.current = audio
-      audio.play().catch(() => {})
-    } else {
-      if (bgMusicRef.current) {
-        bgMusicRef.current.pause()
-        bgMusicRef.current = null
-      }
-    }
-    return () => {
-      if (bgMusicRef.current) { bgMusicRef.current.pause(); bgMusicRef.current = null }
-    }
-  }, [chat.mode])
-
-  // Duck music volume while Buddy speaks
-  useEffect(() => {
-    if (!bgMusicRef.current) return
-    bgMusicRef.current.volume = uiStatus === 'speaking' ? 0.05 : uiStatus === 'listening' ? 0 : 0.2
-  }, [uiStatus])
+  // Sing mode plays real recordings inside <SingAlong>; no separate
+  // background track here (the old Pixabay loop hot-link-404'd anyway).
 
   // Story/sing-mode word-by-word reading tracker (karaoke dot)
   const isTrackedMode = chat.mode === 'story' || chat.mode === 'sing'
@@ -404,7 +380,6 @@ export default function ChildPage({ session }) {
   if (chat.mode === 'sing') {
     return (
       <SingAlong
-        speech={speech}
         onExit={() => {
           cancelBubbleClear()
           const intro = chat.switchMode('chat')

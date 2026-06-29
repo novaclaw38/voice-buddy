@@ -2,103 +2,105 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { NURSERY_RHYMES } from '../utils/nurseryRhymes.js'
 import styles from './SingAlong.module.css'
 
-export default function SingAlong({ speech, onExit }) {
-  const [screen, setScreen] = useState('pick') // 'pick' | 'sing'
+// Sing-along plays a REAL sung recording per song. Recordings have no
+// per-word timestamps, so the karaoke highlight is driven by elapsed
+// playback time, distributed across words by character length (longer
+// words get proportionally more time) for a natural-feeling bounce.
+export default function SingAlong({ onExit }) {
+  const [screen, setScreen] = useState('pick') // 'pick' | 'sing' | 'credits'
   const [song, setSong] = useState(null)
-  const [lineIdx, setLineIdx] = useState(0)
-  const [wordIdx, setWordIdx] = useState(-1)
-  const [isSpeaking, setIsSpeaking] = useState(false)
-  const [statusMsg, setStatusMsg] = useState('')
+  const [globalWord, setGlobalWord] = useState(-1) // index across the whole song
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [ended, setEnded] = useState(false)
+  const audioRef = useRef(null)
   const rafRef = useRef(null)
-  const autoRef = useRef(null)
 
-  const clearTimers = () => {
+  // Flatten lyrics into a word map so we can locate the active line+word
+  // from a single global word index.
+  const buildWordMap = useCallback((rhyme) => {
+    const map = [] // { line, word, len }
+    rhyme.lines.forEach((line, li) => {
+      line.trim().split(/\s+/).filter(Boolean).forEach((w, wi) => {
+        map.push({ line: li, word: wi, len: w.length })
+      })
+    })
+    return map
+  }, [])
+
+  const stopRaf = () => {
     if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null }
-    if (autoRef.current) { clearTimeout(autoRef.current); autoRef.current = null }
   }
 
-  // Char-proportion karaoke tracking via RAF
-  const startWordTracking = useCallback((line) => {
-    if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null }
-    const words = line.trim().split(/\s+/).filter(Boolean)
-    if (!words.length) return
-    const totalChars = words.reduce((s, w) => s + w.length, 0)
-
+  const startTracking = useCallback((rhyme) => {
+    stopRaf()
+    const map = buildWordMap(rhyme)
+    const totalChars = map.reduce((s, w) => s + w.len, 0) || 1
     const tick = () => {
-      const audio = speech.audioRef.current
+      const audio = audioRef.current
       if (audio && audio.duration > 0) {
         const progress = Math.min(audio.currentTime / audio.duration, 1)
         const charPos = progress * totalChars
-        let cumChars = 0
-        let idx = words.length - 1
-        for (let i = 0; i < words.length; i++) {
-          cumChars += words[i].length
-          if (charPos <= cumChars) { idx = i; break }
+        let cum = 0
+        let idx = map.length - 1
+        for (let i = 0; i < map.length; i++) {
+          cum += map[i].len
+          if (charPos <= cum) { idx = i; break }
         }
-        setWordIdx(idx)
-      } else if (speech.boundaryWordRef.current >= 0) {
-        setWordIdx(Math.min(speech.boundaryWordRef.current, words.length - 1))
+        setGlobalWord(idx)
       }
       rafRef.current = requestAnimationFrame(tick)
     }
     rafRef.current = requestAnimationFrame(tick)
-  }, [speech])
+  }, [buildWordMap])
 
-  const speakLine = useCallback((line) => {
-    clearTimers()
-    setWordIdx(-1)
-    setIsSpeaking(true)
-    setStatusMsg('🎵 Listen and sing along!')
-    startWordTracking(line)
-    speech.speak(line, () => {
-      if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null }
-      setWordIdx(-1)
-      setIsSpeaking(false)
-      setStatusMsg('Now YOU sing it! 🎤')
+  const playSong = useCallback((rhyme) => {
+    stopRaf()
+    if (audioRef.current) { audioRef.current.pause() }
+    const audio = new Audio(rhyme.audio)
+    audio.preload = 'auto'
+    audioRef.current = audio
+    setGlobalWord(-1)
+    setEnded(false)
+    audio.addEventListener('ended', () => {
+      stopRaf()
+      setIsPlaying(false)
+      setEnded(true)
+      setGlobalWord(-1)
     })
-  }, [speech, startWordTracking])
+    audio.addEventListener('play', () => { setIsPlaying(true); startTracking(rhyme) })
+    audio.addEventListener('pause', () => { setIsPlaying(false); stopRaf() })
+    audio.play().catch(() => { setIsPlaying(false) })
+  }, [startTracking])
 
   // Cleanup on unmount
   useEffect(() => () => {
-    clearTimers()
-    speech.stopSpeaking()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    stopRaf()
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null }
+  }, [])
 
   const handlePickSong = (rhyme) => {
     setSong(rhyme)
-    setLineIdx(0)
-    setWordIdx(-1)
     setScreen('sing')
-    setTimeout(() => speakLine(rhyme.lines[0]), 400)
+    setTimeout(() => playSong(rhyme), 250)
   }
 
-  const handleNextLine = useCallback(() => {
-    if (isSpeaking || !song) return
-    clearTimers()
-    const next = lineIdx + 1
-    if (next >= song.lines.length) {
-      setStatusMsg('🎉 Amazing singing!')
-      setTimeout(() => setScreen('pick'), 1500)
-    } else {
-      setLineIdx(next)
-      setTimeout(() => speakLine(song.lines[next]), 150)
-    }
-  }, [isSpeaking, lineIdx, song, speakLine])
-
-  const handleReplay = () => {
-    if (isSpeaking || !song) return
-    speakLine(song.lines[lineIdx])
+  const handlePlayPause = () => {
+    const audio = audioRef.current
+    if (!audio || audio.ended || ended) { if (song) playSong(song); return }
+    if (audio.paused) { audio.play().catch(() => {}) }
+    else { audio.pause() }
   }
+
+  const handleRestart = () => { if (song) playSong(song) }
 
   const handleBackToPick = () => {
-    clearTimers()
-    speech.stopSpeaking()
+    stopRaf()
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null }
     setScreen('pick')
     setSong(null)
-    setLineIdx(0)
-    setWordIdx(-1)
-    setStatusMsg('')
-    setIsSpeaking(false)
+    setGlobalWord(-1)
+    setIsPlaying(false)
+    setEnded(false)
   }
 
   /* ── Song Picker ──────────────────────────────── */
@@ -123,7 +125,42 @@ export default function SingAlong({ speech, onExit }) {
             >
               <span className={styles.songEmoji}>{r.emoji}</span>
               <span className={styles.songName}>{r.title}</span>
+              <span className={styles.songPlayIcon} aria-hidden="true">▶</span>
             </button>
+          ))}
+        </div>
+
+        <button className={styles.creditsLink} onClick={() => setScreen('credits')}>
+          Song credits
+        </button>
+      </div>
+    )
+  }
+
+  /* ── Credits (licence attribution) ────────────── */
+  if (screen === 'credits') {
+    return (
+      <div className={styles.overlay}>
+        <div className={styles.topBar}>
+          <button className={styles.backBtn} onClick={() => setScreen('pick')}>← Back</button>
+          <span className={styles.topTitle}>Song credits</span>
+          <div style={{ width: 70 }} />
+        </div>
+        <div className={styles.creditsList}>
+          <p className={styles.creditsIntro}>
+            Recordings from Wikimedia Commons, used under their licences:
+          </p>
+          {NURSERY_RHYMES.map((r) => (
+            <a
+              key={r.id}
+              className={styles.creditRow}
+              href={r.credit.source}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <span className={styles.creditSong}>{r.emoji} {r.title}</span>
+              <span className={styles.creditMeta}>{r.credit.author} · {r.credit.license}</span>
+            </a>
           ))}
         </div>
       </div>
@@ -131,8 +168,11 @@ export default function SingAlong({ speech, onExit }) {
   }
 
   /* ── Sing Screen ──────────────────────────────── */
-  const words = song.lines[lineIdx].trim().split(/\s+/).filter(Boolean)
-  const isLast = lineIdx === song.lines.length - 1
+  // Resolve global word index → which line, and which word within it.
+  const map = buildWordMap(song)
+  const active = globalWord >= 0 && globalWord < map.length ? map[globalWord] : null
+  const activeLine = active ? active.line : -1
+  const activeWord = active ? active.word : -1
 
   return (
     <div className={styles.overlay}>
@@ -143,50 +183,48 @@ export default function SingAlong({ speech, onExit }) {
       </div>
 
       <div className={styles.lyricsBlock}>
-        {song.lines.map((line, i) => (
-          <p
-            key={i}
-            className={[
-              styles.lyricLine,
-              i === lineIdx ? styles.activeLine : '',
-              i < lineIdx  ? styles.doneLine   : '',
-            ].join(' ')}
-          >
-            {i === lineIdx
-              ? words.map((word, wi) => (
-                  <span key={wi} className={`${styles.word} ${wi === wordIdx ? styles.activeWord : ''}`}>
-                    {wi === wordIdx && <span className={styles.dot} aria-hidden="true">●</span>}
-                    {word}{' '}
-                  </span>
-                ))
-              : line
-            }
-          </p>
-        ))}
+        {song.lines.map((line, i) => {
+          const words = line.trim().split(/\s+/).filter(Boolean)
+          const cls = [
+            styles.lyricLine,
+            i === activeLine ? styles.activeLine : '',
+            i < activeLine ? styles.doneLine : '',
+          ].join(' ')
+          return (
+            <p key={i} className={cls}>
+              {i === activeLine
+                ? words.map((word, wi) => (
+                    <span key={wi} className={`${styles.word} ${wi === activeWord ? styles.activeWord : ''}`}>
+                      {wi === activeWord && <span className={styles.dot} aria-hidden="true">●</span>}
+                      {word}
+                    </span>
+                  ))
+                : line}
+            </p>
+          )
+        })}
       </div>
 
-      <p className={styles.statusLine}>{statusMsg}</p>
+      <p className={styles.statusLine}>
+        {ended ? '🎉 Great singing!' : isPlaying ? '🎵 Sing along!' : '⏸ Paused — tap play'}
+      </p>
 
       <div className={styles.controls}>
         <button
           className={styles.replayBtn}
-          onClick={handleReplay}
-          disabled={isSpeaking}
-          aria-label="Hear this line again"
+          onClick={handleRestart}
+          aria-label="Start the song again"
         >
           🔁 Again
         </button>
         <button
           className={styles.nextBtn}
-          onClick={handleNextLine}
-          disabled={isSpeaking}
-          aria-label={isLast ? 'Finish song' : 'Next line'}
+          onClick={handlePlayPause}
+          aria-label={isPlaying ? 'Pause' : 'Play'}
         >
-          {isLast ? '🎉 Yay, done!' : '▶ Next line'}
+          {ended ? '🔁 Sing again' : isPlaying ? '⏸ Pause' : '▶ Play'}
         </button>
       </div>
-
-      <p className={styles.lineCounter}>{lineIdx + 1} / {song.lines.length}</p>
     </div>
   )
 }
