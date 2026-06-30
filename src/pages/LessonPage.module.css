@@ -59,11 +59,28 @@
   white-space: nowrap;
 }
 
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .dots {
   display: flex;
   gap: 6px;
-  flex-shrink: 0;
 }
+
+.printBtn {
+  font-size: 1.1rem;
+  background: rgba(255,255,255,0.75);
+  border-radius: var(--r-pill);
+  padding: 6px 10px;
+  box-shadow: 0 3px 0 rgba(91,33,182,0.12);
+  line-height: 1;
+}
+
+.printBtn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(91,33,182,0.12); }
 
 .dot {
   width: 10px;
@@ -145,4 +162,99 @@
 .nextBtn:not(:disabled):active {
   transform: translateY(3px);
   box-shadow: 0 3px 0 var(--c-grape-d);
+}
+
+/* ── Print worksheet ── */
+.printSheet {
+  display: none;
+}
+
+@media print {
+  .page { display: none !important; }
+
+  .printSheet {
+    display: block;
+    font-family: Georgia, serif;
+    font-size: 13pt;
+    color: #000;
+    padding: 0;
+  }
+
+  .printHeader {
+    border-bottom: 2pt solid #333;
+    padding-bottom: 12pt;
+    margin-bottom: 18pt;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .printLogo {
+    font-size: 13pt;
+    font-weight: bold;
+  }
+
+  .printTitle {
+    font-size: 18pt;
+    font-weight: bold;
+    text-align: center;
+    flex: 1;
+    margin: 0 12pt;
+  }
+
+  .printName {
+    font-size: 11pt;
+    text-align: right;
+    min-width: 140pt;
+  }
+
+  .printSection {
+    margin-bottom: 20pt;
+  }
+
+  .printSection h2 {
+    font-size: 14pt;
+    font-weight: bold;
+    border-bottom: 1pt solid #999;
+    padding-bottom: 4pt;
+    margin-bottom: 10pt;
+  }
+
+  .printSection ul {
+    padding-left: 20pt;
+    line-height: 2;
+  }
+
+  .printColourBox {
+    border: 2pt dashed #ccc;
+    border-radius: 8pt;
+    padding: 20pt;
+    text-align: center;
+    min-height: 180pt;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10pt;
+  }
+
+  .printEmoji {
+    font-size: 60pt;
+    display: block;
+  }
+
+  .printPrompt {
+    font-size: 11pt;
+    color: #555;
+    font-style: italic;
+  }
+
+  .printFooter {
+    border-top: 1pt solid #ccc;
+    padding-top: 6pt;
+    font-size: 9pt;
+    color: #888;
+    text-align: center;
+    margin-top: 24pt;
+  }
 }

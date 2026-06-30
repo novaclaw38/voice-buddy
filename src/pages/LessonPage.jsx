@@ -28,7 +28,13 @@ export default function LessonPage() {
   const [phase, setPhase] = useState('steps') // 'steps' | 'reward'
   const [buddyText, setBuddyText] = useState('')
   const [uiStatus, setUiStatus] = useState('idle')
+  const [printTarget, setPrintTarget] = useState(null)
   const stepKeyRef = useRef(0)
+
+  const handlePrintSheet = () => {
+    setPrintTarget('sheet')
+    setTimeout(() => { window.print(); setPrintTarget(null) }, 80)
+  }
 
   const childAge = settings.childAge || 7
 
@@ -93,18 +99,22 @@ export default function LessonPage() {
   const stepKey = `${stepIndex}-${stepKeyRef.current}`
 
   return (
+  <>
     <div className={styles.page}>
       {/* Header */}
       <div className={styles.header}>
         <button className={styles.back} onClick={handleBack}>← Back</button>
         <span className={styles.lessonTitle}>{lesson.emoji} {lesson.title}</span>
-        <div className={styles.dots}>
-          {steps.map((_, i) => (
-            <span
-              key={i}
-              className={`${styles.dot} ${i === stepIndex ? styles.dotActive : ''} ${i < stepIndex ? styles.dotDone : ''}`}
-            />
-          ))}
+        <div className={styles.headerRight}>
+          <div className={styles.dots}>
+            {steps.map((_, i) => (
+              <span
+                key={i}
+                className={`${styles.dot} ${i === stepIndex ? styles.dotActive : ''} ${i < stepIndex ? styles.dotDone : ''}`}
+              />
+            ))}
+          </div>
+          <button className={styles.printBtn} onClick={handlePrintSheet} title="Print worksheet">🖨️</button>
         </div>
       </div>
 
@@ -161,5 +171,34 @@ export default function LessonPage() {
         </button>
       </div>
     </div>
+
+    {/* Printable worksheet — screen hidden, shown on print */}
+    {printTarget === 'sheet' && (
+      <>
+        <style>{`@page { size: A4 portrait; margin: 20mm; }`}</style>
+        <div className={styles.printSheet}>
+          <div className={styles.printHeader}>
+            <span className={styles.printLogo}>🐻 Voice Buddy</span>
+            <h1 className={styles.printTitle}>{lesson.emoji} {lesson.printSheet?.title || lesson.title}</h1>
+            <div className={styles.printName}>Name: {settings.childName || '______________________'}</div>
+          </div>
+          <section className={styles.printSection}>
+            <h2>What I Will Learn</h2>
+            <ul>
+              {lesson.printSheet?.facts?.map((fact, i) => <li key={i}>{fact}</li>)}
+            </ul>
+          </section>
+          <section className={styles.printSection}>
+            <h2>Colour & Draw</h2>
+            <div className={styles.printColourBox}>
+              <span className={styles.printEmoji}>{lesson.printSheet?.visual}</span>
+              <p className={styles.printPrompt}>{lesson.printSheet?.colourPrompt}</p>
+            </div>
+          </section>
+          <footer className={styles.printFooter}>Voice Buddy | voicebuddy.app</footer>
+        </div>
+      </>
+    )}
+  </>
   )
 }
