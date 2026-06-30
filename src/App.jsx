@@ -9,6 +9,7 @@ const ParentPage  = lazy(() => import('./pages/ParentPage.jsx'))
 const AuthPage    = lazy(() => import('./pages/AuthPage.jsx'))
 const LandingPage = lazy(() => import('./pages/LandingPage.jsx'))
 const CoursesPage = lazy(() => import('./pages/CoursesPage.jsx'))
+const LessonPage  = lazy(() => import('./pages/LessonPage.jsx'))
 
 const Loader = () => (
   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#030712' }}>
@@ -51,6 +52,7 @@ export default function App() {
           <Route path="/app"     element={session ? <ChildPage session={session} />  : <Navigate to="/" replace />} />
           <Route path="/parent"  element={session ? <ParentPage session={session} /> : <Navigate to="/" replace />} />
           <Route path="/courses" element={session ? <CoursesPage session={session} /> : <Navigate to="/" replace />} />
+          <Route path="/lesson"  element={session ? <LessonPage session={session} /> : <Navigate to="/" replace />} />
 
           {/* Catch-all */}
           <Route path="*" element={<Navigate to={session ? '/app' : '/'} replace />} />

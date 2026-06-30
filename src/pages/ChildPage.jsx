@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import BuddyAvatar from '../components/BuddyAvatar.jsx'
 import SpeechBubble from '../components/SpeechBubble.jsx'
 import VoiceButton from '../components/VoiceButton.jsx'
@@ -13,13 +13,11 @@ import { useSubscription } from '../hooks/useSubscription.jsx'
 import { getSettings, saveSettings } from '../utils/storage.js'
 import { supabase } from '../lib/supabase.js'
 import { fetchMessageById, markPlayed } from '../services/messageService.js'
-import { COURSES } from '../utils/courses.js'
 import SingAlong from '../components/SingAlong.jsx'
 import styles from './ChildPage.module.css'
 
 export default function ChildPage({ session }) {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
   const [settings, setSettings] = useState(() => getSettings())
   const [buddyText, setBuddyText] = useState('')
   const [userText, setUserText] = useState('')
@@ -192,31 +190,15 @@ export default function ChildPage({ session }) {
     }
   }, [])
 
-  // Boot greeting — or jump straight into a course lesson
+  // Boot greeting
   useEffect(() => {
-    const courseId  = searchParams.get('course')
-    const lessonId  = searchParams.get('lesson')
-    const courseObj = courseId ? COURSES.find(c => c.id === courseId) : null
-    const lesson    = courseObj ? courseObj.lessons.find(l => l.id === lessonId) : null
-
-    if (lesson) {
-      chat.switchMode('learn')
-      const intro = `Let's learn about "${lesson.title}"! ${lesson.prompt.slice(0, 80)}…`
-      setBuddyText(intro)
-      setUiStatus('speaking')
-      speech.speak(intro, () => {
-        setUiStatus('idle')
-        scheduleBubbleClear()
-      })
-    } else {
-      const greet = `Hi ${childName}! I'm ${buddyName}! Pick something to do, or just tap the mic and talk to me!`
-      setBuddyText(greet)
-      setUiStatus('speaking')
-      speech.speak(greet, () => {
-        setUiStatus('idle')
-        scheduleBubbleClear()
-      })
-    }
+    const greet = `Hi ${childName}! I'm ${buddyName}! Pick something to do, or just tap the mic and talk to me!`
+    setBuddyText(greet)
+    setUiStatus('speaking')
+    speech.speak(greet, () => {
+      setUiStatus('idle')
+      scheduleBubbleClear()
+    })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sing mode plays real recordings inside <SingAlong>; no separate

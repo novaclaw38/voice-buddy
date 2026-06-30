@@ -13,7 +13,7 @@ export default function CoursesPage({ session }) {
 
   const handleLesson = (courseId, lessonId) => {
     if (!isPro) { setShowUpgrade(true); return }
-    navigate(`/app?course=${courseId}&lesson=${lessonId}`)
+    navigate(`/lesson?course=${courseId}&lesson=${lessonId}`)
   }
 
   return (
