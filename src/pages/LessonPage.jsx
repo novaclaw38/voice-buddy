@@ -1,7 +1,7 @@
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { COURSES } from '../utils/courses.js'
 
-export default function LessonPage() {
+export default function LessonPage({ session }) {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const courseId = searchParams.get('course')
