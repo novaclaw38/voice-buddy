@@ -175,6 +175,17 @@
   color: var(--ink);
 }
 
+.lessonDuration {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.6);
+  background: rgba(255,255,255,0.12);
+  border-radius: 20px;
+  padding: 2px 8px;
+  margin-left: auto;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .lessonArrow {
   font-size: 14px;
   color: var(--ink-dim);
