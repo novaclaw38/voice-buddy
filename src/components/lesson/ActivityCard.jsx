@@ -1,11 +1,21 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import VoiceButton from '../VoiceButton.jsx'
 import styles from './ActivityCard.module.css'
 
 export default function ActivityCard({ step, settings, speech, onComplete }) {
   const [transcript, setTranscript] = useState('')
   const [listening, setListening] = useState(false)
+  const timerRef = useRef(null)
   const buddyName = settings.buddyName || 'Buddy'
+
+  // Fix 5: clear onComplete timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current !== null) {
+        clearTimeout(timerRef.current)
+      }
+    }
+  }, [])
 
   const handlePress = () => {
     if (listening) {
@@ -17,7 +27,8 @@ export default function ActivityCard({ step, settings, speech, onComplete }) {
     speech.startListening((text) => {
       setTranscript(text)
       setListening(false)
-      onComplete()
+      // Fix 4: delay onComplete so transcript bubble is briefly visible
+      timerRef.current = setTimeout(onComplete, 700)
     })
   }
 
