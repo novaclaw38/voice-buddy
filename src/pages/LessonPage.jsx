@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { COURSES } from '../utils/courses.js'
 import { getSettings } from '../utils/storage.js'
 import { useSpeech } from '../hooks/useSpeech.js'
+import { useCompletions } from '../hooks/useCompletions.js'
 import BuddyAvatar from '../components/BuddyAvatar.jsx'
 import SpeechBubble from '../components/SpeechBubble.jsx'
 import ExplainCard from '../components/lesson/ExplainCard.jsx'
@@ -17,6 +18,7 @@ export default function LessonPage() {
   const navigate = useNavigate()
   const [settings] = useState(() => getSettings()) // Fix 3: read localStorage once on mount
   const speech = useSpeech(settings)
+  const { markComplete } = useCompletions()
 
   const courseId = searchParams.get('course')
   const lessonId = searchParams.get('lesson')
@@ -72,6 +74,7 @@ export default function LessonPage() {
       setStepIndex(i => i + 1)
     } else {
       speech.stopSpeaking()
+      markComplete(courseId, lessonId)
       setPhase('reward')
     }
   }

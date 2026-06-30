@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { COURSES } from '../utils/courses.js'
 import { useSubscription } from '../hooks/useSubscription.jsx'
+import { useCompletions } from '../hooks/useCompletions.js'
 import UpgradePrompt from '../components/UpgradePrompt.jsx'
 import { useState } from 'react'
 import { getSettings } from '../utils/storage.js'
@@ -13,6 +14,7 @@ export default function CoursesPage({ session }) {
   const [expanded, setExpanded] = useState(null)
   const [settings] = useState(() => getSettings())
   const durationLabel = (settings.childAge || 7) <= 6 ? '~15 min' : '~30 min'
+  const { completions } = useCompletions()
 
   const handleLesson = (courseId, lessonId) => {
     if (!isPro) { setShowUpgrade(true); return }
@@ -60,6 +62,9 @@ export default function CoursesPage({ session }) {
                         <span className={styles.lessonNum}>{i + 1}</span>
                         <span className={styles.lessonEmoji}>{lesson.emoji}</span>
                         <span className={styles.lessonTitle}>{lesson.title}</span>
+                        {completions.has(`${course.id}:${lesson.id}`) && (
+                          <span className={styles.lessonCheck}>✅</span>
+                        )}
                         <span className={styles.lessonDuration}>{durationLabel}</span>
                         <span className={styles.lessonArrow}>{isPro ? '→' : '🔒'}</span>
                       </button>

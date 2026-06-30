@@ -186,6 +186,11 @@
   flex-shrink: 0;
 }
 
+.lessonCheck {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
 .lessonArrow {
   font-size: 14px;
   color: var(--ink-dim);
