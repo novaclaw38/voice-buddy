@@ -33,16 +33,22 @@ export default function QuizCard({ step, onComplete }) {
             {Array.from({ length: 8 }).map((_, i) => <span key={i} />)}
           </div>
         )}
-        {step.options.map((opt, i) => (
-          <button
-            key={i}
-            className={getOptionClass(i)}
-            onClick={() => handleSelect(i)}
-            disabled={selected !== null}
-          >
-            {opt}
-          </button>
-        ))}
+        {step.options.map((opt, i) => {
+          const spaceIdx = opt.indexOf(' ')
+          const emoji = spaceIdx > -1 ? opt.slice(0, spaceIdx) : ''
+          const text  = spaceIdx > -1 ? opt.slice(spaceIdx + 1) : opt
+          return (
+            <button
+              key={i}
+              className={getOptionClass(i)}
+              onClick={() => handleSelect(i)}
+              disabled={selected !== null}
+            >
+              {emoji && <span className={styles.optEmoji}>{emoji}</span>}
+              <span className={styles.optText}>{text}</span>
+            </button>
+          )
+        })}
       </div>
     </div>
   )
