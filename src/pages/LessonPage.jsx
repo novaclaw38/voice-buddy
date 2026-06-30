@@ -15,7 +15,7 @@ import styles from './LessonPage.module.css'
 export default function LessonPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const settings = getSettings()
+  const [settings] = useState(() => getSettings()) // Fix 3: read localStorage once on mount
   const speech = useSpeech(settings)
 
   const courseId = searchParams.get('course')
@@ -32,17 +32,19 @@ export default function LessonPage() {
 
   const childAge = settings.childAge || 7
 
-  if (!lesson) {
-    navigate('/courses')
-    return null
-  }
+  // Compute step-derived values with optional chaining so they're safe before the guard
+  const steps = lesson?.steps
+  const step = steps?.[stepIndex]
+  const narration = (childAge <= 6 && step?.narrationYoung) ? step.narrationYoung : step?.narration
 
-  const steps = lesson.steps
-  const step = steps[stepIndex]
-  const narration = (childAge <= 6 && step.narrationYoung) ? step.narrationYoung : step.narration
-
-  // Speak narration when step changes
+  // Fix 2: navigate is a side-effect — must not be called during render
   useEffect(() => {
+    if (!lesson) navigate('/courses')
+  }, [lesson, navigate])
+
+  // Fix 1: hoisted above the if (!lesson) guard; guard inside the effect body
+  useEffect(() => {
+    if (!lesson) return
     stepKeyRef.current += 1
     setStepComplete(false)
     setBuddyText(narration)
@@ -54,6 +56,10 @@ export default function LessonPage() {
     })
     return () => speech.stopSpeaking()
   }, [stepIndex]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!lesson) {
+    return null
+  }
 
   const handleNext = () => {
     if (stepIndex < steps.length - 1) {
