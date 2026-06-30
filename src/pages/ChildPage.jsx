@@ -14,6 +14,8 @@ import { getSettings, saveSettings } from '../utils/storage.js'
 import { supabase } from '../lib/supabase.js'
 import { fetchMessageById, markPlayed } from '../services/messageService.js'
 import SingAlong from '../components/SingAlong.jsx'
+import DailyActivity from '../components/DailyActivity.jsx'
+import { getDailyActivity, isDailyActivityDismissed, dismissDailyActivity } from '../utils/dailyActivities.js'
 import styles from './ChildPage.module.css'
 
 export default function ChildPage({ session }) {
@@ -31,6 +33,8 @@ export default function ChildPage({ session }) {
   const [wordIndex, setWordIndex] = useState(-1)
   const [showUpgrade, setShowUpgrade] = useState(false)
   const rafRef = useRef(null)
+  const [showActivity, setShowActivity] = useState(() => !isDailyActivityDismissed())
+  const dailyActivity = getDailyActivity()
   const [parentMessage, setParentMessage] = useState(null)
   const parentAudioRef = useRef(null)
   // Timer ref for clearing bubble text after speech ends
@@ -190,9 +194,17 @@ export default function ChildPage({ session }) {
     }
   }, [])
 
+  const handleDismissActivity = () => {
+    dismissDailyActivity()
+    setShowActivity(false)
+  }
+
   // Boot greeting
   useEffect(() => {
-    const greet = `Hi ${childName}! I'm ${buddyName}! Pick something to do, or just tap the mic and talk to me!`
+    const activityPart = showActivity
+      ? ` Oh, and here is today's activity — ${dailyActivity.description}`
+      : ''
+    const greet = `Hi ${childName}! I'm ${buddyName}! Pick something to do, or just tap the mic and talk to me!${activityPart}`
     setBuddyText(greet)
     setUiStatus('speaking')
     speech.speak(greet, () => {
@@ -487,6 +499,9 @@ export default function ChildPage({ session }) {
       {/* Mode selector — bottom strip, shown when idle or listening */}
       {(uiStatus === 'idle' || uiStatus === 'listening') && (
         <div className={styles.modesArea}>
+          {showActivity && chat.mode === 'chat' && (
+            <DailyActivity activity={dailyActivity} onDismiss={handleDismissActivity} />
+          )}
           <ModeSelector
             currentMode={chat.mode}
             onSelect={handleModeSelect}
