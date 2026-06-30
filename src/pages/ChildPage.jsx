@@ -149,20 +149,15 @@ export default function ChildPage({ session }) {
     return () => { channel?.unsubscribe() }
   }, [])
 
-  // Auto-play parent message when it arrives
+  // Auto-play parent message when it arrives — overlay stays until "Got it!"
   useEffect(() => {
     if (!parentMessage) return
     speech.stopSpeaking()
     speech.stopListening()
     const audio = new Audio(parentMessage.audioUrl)
     parentAudioRef.current = audio
-    const cleanup = () => {
-      markPlayed(parentMessage.id).catch(() => {})
-      setParentMessage(null)
-      parentAudioRef.current = null
-    }
-    audio.onended = cleanup
-    audio.onerror = cleanup
+    audio.onended = () => { parentAudioRef.current = null }
+    audio.onerror = () => { parentAudioRef.current = null }
     audio.play().catch(() => {})
   }, [parentMessage]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -171,6 +166,14 @@ export default function ChildPage({ session }) {
     parentAudioRef.current = null
     if (parentMessage) markPlayed(parentMessage.id).catch(() => {})
     setParentMessage(null)
+  }
+
+  const replayParentMessage = () => {
+    if (!parentMessage) return
+    const audio = new Audio(parentMessage.audioUrl)
+    parentAudioRef.current = audio
+    audio.onended = () => { parentAudioRef.current = null }
+    audio.play().catch(() => {})
   }
 
   // Helper: schedule bubble fade-out after speech ends
@@ -363,14 +366,17 @@ export default function ChildPage({ session }) {
         )}
 
         {parentMessage && (
-          <div className={styles.msgOverlay}>
-            <div className={styles.msgBubble}>
-              <div className={styles.msgIcon}>🐻</div>
-              <p className={styles.msgTitle}>Message from your parent!</p>
-              <button className={styles.msgPlayBtn} onClick={() => parentAudioRef.current?.play()}>▶ Play again</button>
-              <button className={styles.msgDismissBtn} onClick={dismissParentMessage}>Got it!</button>
+          <>
+            <button className={styles.envelopeBtn} aria-label="Parent message waiting">📩</button>
+            <div className={styles.msgOverlay}>
+              <div className={styles.msgBubble}>
+                <div className={styles.msgIcon}>📩</div>
+                <p className={styles.msgTitle}>Message from your parent!</p>
+                <button className={styles.msgPlayBtn} onClick={replayParentMessage}>▶ Play again</button>
+                <button className={styles.msgDismissBtn} onClick={dismissParentMessage}>Got it!</button>
+              </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     )
@@ -379,19 +385,40 @@ export default function ChildPage({ session }) {
   // Sing mode renders its own full-screen overlay
   if (chat.mode === 'sing') {
     return (
-      <SingAlong
-        onExit={() => {
-          cancelBubbleClear()
-          const intro = chat.switchMode('chat')
-          setBuddyText(intro)
-          setUserText('')
-          setUiStatus('speaking')
-          speech.speak(intro, () => {
-            setUiStatus('idle')
-            scheduleBubbleClear()
-          })
-        }}
-      />
+      <>
+        <SingAlong
+          onExit={() => {
+            cancelBubbleClear()
+            const intro = chat.switchMode('chat')
+            setBuddyText(intro)
+            setUserText('')
+            setUiStatus('speaking')
+            speech.speak(intro, () => {
+              setUiStatus('idle')
+              scheduleBubbleClear()
+            })
+          }}
+        />
+        {parentMessage && (
+          <>
+            <button
+              className={styles.envelopeFloat}
+              onClick={() => {}}
+              aria-label="Parent message waiting"
+            >
+              📩
+            </button>
+            <div className={styles.msgOverlay}>
+              <div className={styles.msgBubble}>
+                <div className={styles.msgIcon}>📩</div>
+                <p className={styles.msgTitle}>Message from your parent!</p>
+                <button className={styles.msgPlayBtn} onClick={replayParentMessage}>▶ Play again</button>
+                <button className={styles.msgDismissBtn} onClick={dismissParentMessage}>Got it!</button>
+              </div>
+            </div>
+          </>
+        )}
+      </>
     )
   }
 
@@ -419,6 +446,15 @@ export default function ChildPage({ session }) {
         <span className={styles.modeLabel}>
           {chat.mode !== 'chat' ? `${chat.mode} mode` : `Hi, ${childName}!`}
         </span>
+        {parentMessage && (
+          <button
+            className={styles.envelopeBtn}
+            aria-label="Parent message waiting"
+            title="Message from your parent!"
+          >
+            📩
+          </button>
+        )}
         {cameraOn && <span className={styles.cameraIndicator} title="Camera on">📹</span>}
         <button
           className={styles.customizeBtn}
@@ -522,11 +558,11 @@ export default function ChildPage({ session }) {
       {parentMessage && (
         <div className={styles.msgOverlay}>
           <div className={styles.msgBubble}>
-            <div className={styles.msgIcon}>🐻</div>
+            <div className={styles.msgIcon}>📩</div>
             <p className={styles.msgTitle}>Message from your parent!</p>
             <button
               className={styles.msgPlayBtn}
-              onClick={() => parentAudioRef.current?.play()}
+              onClick={replayParentMessage}
             >
               ▶ Play again
             </button>

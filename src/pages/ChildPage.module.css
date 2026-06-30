@@ -424,3 +424,40 @@
   font-size: 12px;
   font-weight: 700;
 }
+
+/* Flashing envelope — parent message indicator in top bar */
+.envelopeBtn {
+  font-size: 1.4rem;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 4px 0 #b91c1c, 0 0 0 3px rgba(239,68,68,0.35);
+  line-height: 1;
+  animation: envelopePulse 0.7s ease-in-out infinite alternate;
+  flex-shrink: 0;
+}
+
+@keyframes envelopePulse {
+  from { transform: scale(1);    box-shadow: 0 4px 0 #b91c1c, 0 0 0 3px rgba(239,68,68,0.35); }
+  to   { transform: scale(1.12); box-shadow: 0 4px 0 #b91c1c, 0 0 0 8px rgba(239,68,68,0.0); }
+}
+
+/* Floating envelope overlay for sing mode */
+.envelopeFloat {
+  position: fixed;
+  top: 18px;
+  right: 80px;
+  z-index: 300;
+  font-size: 1.6rem;
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 4px 0 #b91c1c, 0 0 0 3px rgba(239,68,68,0.35);
+  animation: envelopePulse 0.7s ease-in-out infinite alternate;
+}
